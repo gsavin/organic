@@ -1,0 +1,30 @@
+DGS004
+org 0 0
+
+an A1 meta.index="A"
+an A2 meta.index="A"
+an A3 meta.index="A"
+
+ae A12 A1 A2
+ae A13 A1 A3
+ae A23 A2 A3
+
+an B1 meta.index="B"
+an B2 meta.index="B"
+an B3 meta.index="B"
+
+ae B12 B1 B2
+ae B13 B1 B3
+ae B23 B2 B3
+
+an C1 meta.index="C"
+an C2 meta.index="C"
+an C3 meta.index="C"
+
+ae C12 C1 C2
+ae C13 C1 C3
+ae C23 C2 C3
+
+ae AB A1 B1
+ae AC A1 C1
+ae BC B1 C1
