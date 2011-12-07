@@ -1,22 +1,53 @@
-==================================================
+======================================================================
 Organizations
-==================================================
+======================================================================
 
 Description
-==================================================
+======================================================================
 
 Required project
-==================================================
+======================================================================
 
 - gs-core
 - gs-subgraph
 
 
 User guide
-==================================================
+======================================================================
+
+How it works ?
+----------------------------------------------------------------------
+
+The algorithm uses a special attribute of node called *meta index*
+that allows to classify nodes into a restricted set of category. Then,
+the organizations manager try to extract connected structures from
+this classification and to maintain these structures through time
+without computing all the solution from scratch.
+
+Two special operations have to be defined :
+
+**merge**
+   this operation is used to merge two organizations. The smallest one
+   is dissolved in the largest one. Organizations should have the same
+   meta index.
+**mitose**
+   this operation is called while some links have been removed in an
+   organization making it disconnected. The biggest set of connected
+   nodes is kept to maintain the organization structure and one or
+   more children are created with the remaining nodes.
+
+Following is the list of events that can lead to change in
+organizations :
+
+- ``edge added``, can lead to a *merge* operation;
+- ``edge removed``, can lead to a *mitose* operation;
+- ``node removed``
+- ``node meta index changed``, can lead to both *merge* or *mitose*
+  operations.
+
 
 Organization listener
---------------------------------------------------
+----------------------------------------------------------------------
 
 What event is triggered ?
 
@@ -37,3 +68,7 @@ What event is triggered ?
 
   1. organizationMerged
   2. organizationRemoved
+
+
+Validation
+----------------------------------------------------------------------

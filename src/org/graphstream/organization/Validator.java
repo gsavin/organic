@@ -25,22 +25,13 @@
  */
 package org.graphstream.organization;
 
-import org.graphstream.graph.Graph;
-
-public interface OrganizationManager extends Iterable<Organization> {
-	void init(Graph g);
-
-	String getMetaIndexAttribute();
-
-	String getMetaOrganizationIndexAttribute();
-
-	void setMetaIndexAttribute(String key);
-
-	void setMetaOrganizationIndexAttribute(String key);
-
-	Organization getOrganization(Object id);
-
-	void addOrganizationListener(OrganizationListener l);
-
-	void removeOrganizationListener(OrganizationListener l);
+public interface Validator {
+	public static enum Level {
+		NONE, HARD
+	}
+	
+	/**
+	 * Have to be call each time a validation is needed.
+	 */
+	void validate(String context, Object... args);
 }

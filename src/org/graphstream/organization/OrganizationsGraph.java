@@ -31,9 +31,18 @@ import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.AdjacencyListGraph;
+import org.graphstream.stream.SinkAdapter;
 
 public class OrganizationsGraph extends AdjacencyListGraph implements
 		OrganizationListener {
+
+	public static final String DEFAULT_CSS = "node { size: 40px; } edge { fill-color: gray; }";
+
+	protected class StepForwarding extends SinkAdapter {
+		public void stepBegins(String sourceId, long timeId, double time) {
+			OrganizationsGraph.this.stepBegins(time);
+		}
+	}
 
 	Graph entitiesGraph;
 	OrganizationManager manager;
@@ -45,7 +54,8 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 	public OrganizationsGraph(Graph g, OrganizationManagerFactory factory) {
 		super(g.getId() + "-meta");
 
-		this.entitiesGraph = g;
+		entitiesGraph = g;
+		entitiesGraph.addElementSink(new StepForwarding());
 
 		if (factory != null)
 			manager = factory.newOrganizationManager();
@@ -54,6 +64,8 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 
 		manager.init(g);
 		manager.addOrganizationListener(this);
+
+		addAttribute("ui.stylesheet", DEFAULT_CSS);
 	}
 
 	public OrganizationManager getManager() {
@@ -82,6 +94,8 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 		Node n = addNode(metaOrganizationIndex.toString());
 		n.addAttribute("meta.index", metaIndex);
 		n.addAttribute("meta.root", rootNodeId);
+		n.addAttribute("ui.style", "fill-color: "
+				+ manager.getOrganization(metaOrganizationIndex).color + ";");
 	}
 
 	public void organizationMerged(Object metaIndex,
@@ -139,6 +153,10 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 		String eid = getEdgeID(nid1, nid2);
 
 		Edge e = getEdge(eid);
+		
+		if (e == null)
+			return;
+		
 		HashSet<String> edges = e.getAttribute("connection.elements");
 		edges.remove(connection);
 
@@ -148,6 +166,9 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 
 	protected String getEdgeID(String nid1, String nid2) {
 		if (nid1.hashCode() < nid2.hashCode())
+			return String.format("('%s';'%s')", nid1, nid2);
+
+		if (nid1.hashCode() == nid2.hashCode() && nid1.compareTo(nid2) < 0)
 			return String.format("('%s';'%s')", nid1, nid2);
 
 		return String.format("('%s';'%s')", nid2, nid1);

@@ -25,22 +25,15 @@
  */
 package org.graphstream.organization;
 
-import org.graphstream.graph.Graph;
+public class ValidationException extends RuntimeException {
+	private static final long serialVersionUID = -1463403368251501898L;
 
-public interface OrganizationManager extends Iterable<Organization> {
-	void init(Graph g);
+	public ValidationException(Throwable cause, String message,
+			Object... args) {
+		super(String.format(message, args), cause);
+	}
 
-	String getMetaIndexAttribute();
-
-	String getMetaOrganizationIndexAttribute();
-
-	void setMetaIndexAttribute(String key);
-
-	void setMetaOrganizationIndexAttribute(String key);
-
-	Organization getOrganization(Object id);
-
-	void addOrganizationListener(OrganizationListener l);
-
-	void removeOrganizationListener(OrganizationListener l);
+	public ValidationException(String message, Object... args) {
+		super(String.format(message, args));
+	}
 }

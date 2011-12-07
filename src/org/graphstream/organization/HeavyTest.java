@@ -25,22 +25,26 @@
  */
 package org.graphstream.organization;
 
-import org.graphstream.graph.Graph;
+import org.graphstream.graph.implementations.AdjacencyListGraph;
+import org.graphstream.stream.file.FileSourceDGS;
 
-public interface OrganizationManager extends Iterable<Organization> {
-	void init(Graph g);
+public class HeavyTest {
 
-	String getMetaIndexAttribute();
+	public static void main(String[] args) throws Exception {
+		FileSourceDGS dgs = new FileSourceDGS();
+		AdjacencyListGraph g = new AdjacencyListGraph("g");
+		OrganizationsGraph metaGraph = new OrganizationsGraph(g);
+		
+		metaGraph.getManager().setMetaIndexAttribute("meta.index");
+		
+		dgs.addSink(g);
+		dgs.begin(Test.class.getResourceAsStream("BoidsMovie+antco2.dgs"));
+		
+		int step = 0;
+		
+		while(dgs.nextStep()) {
+			System.out.printf("step #%d\n", step++);
+		}
+	}
 
-	String getMetaOrganizationIndexAttribute();
-
-	void setMetaIndexAttribute(String key);
-
-	void setMetaOrganizationIndexAttribute(String key);
-
-	Organization getOrganization(Object id);
-
-	void addOrganizationListener(OrganizationListener l);
-
-	void removeOrganizationListener(OrganizationListener l);
 }
