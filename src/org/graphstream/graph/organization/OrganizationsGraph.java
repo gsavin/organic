@@ -41,17 +41,17 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 	public OrganizationsGraph(Graph g) {
 		this(g, null);
 	}
-	
+
 	public OrganizationsGraph(Graph g, OrganizationManagerFactory factory) {
 		super(g.getId() + "-meta");
 
 		this.entitiesGraph = g;
-		
+
 		if (factory != null)
 			manager = factory.newOrganizationManager();
 		else
 			manager = new DefaultOrganizationManager();
-		
+
 		manager.init(g);
 		manager.addOrganizationListener(this);
 	}
@@ -59,9 +59,22 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 	public OrganizationManager getManager() {
 		return manager;
 	}
-	
+
 	public void checkConnections() {
 
+	}
+
+	public Organization getNodeOrganization(String nodeId) {
+		Node n = entitiesGraph.getNode(nodeId);
+
+		if (n == null)
+			return null;
+
+		if (!n.hasAttribute(manager.getMetaOrganizationIndexAttribute()))
+			return null;
+
+		return manager.getOrganization(n.getAttribute(manager
+				.getMetaOrganizationIndexAttribute()));
 	}
 
 	public void organizationCreated(Object metaIndex,

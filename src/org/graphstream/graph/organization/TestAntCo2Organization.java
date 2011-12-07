@@ -116,8 +116,9 @@ public class TestAntCo2Organization implements OrganizationListener {
 		centroids = new HashMap<Object, AntCentroidAlgorithm>();
 		viewers = new HashMap<Object, Viewer>();
 		antco2 = new AntCo2Algorithm();
-		orgManager = new DefaultOrganizationManager(g, antco2.getMetaIndexAttribute());
+		orgManager = new DefaultOrganizationManager(antco2.getMetaIndexAttribute());
 		orgManager.addOrganizationListener(this);
+		orgManager.init(g);
 		antco2.init(g);
 		measures = new Measures(orgManager, "organization-measures.dat");
 		g.addSink(measures);
@@ -172,6 +173,20 @@ public class TestAntCo2Organization implements OrganizationListener {
 	public void organizationChanged(Object metaIndex,
 			Object metaOrganizationIndex, ChangeType changeType,
 			ElementType elementType, String elementId) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void connectionCreated(Object metaIndex1,
+			Object metaOrganizationIndex1, Object metaIndex2,
+			Object metaOrganizationIndex2, String connection) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void connectionRemoved(Object metaIndex1,
+			Object metaOrganizationIndex1, Object metaIndex2,
+			Object metaOrganizationIndex2, String connection) {
 		// TODO Auto-generated method stub
 		
 	}

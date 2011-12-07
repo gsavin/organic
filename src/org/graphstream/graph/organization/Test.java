@@ -48,6 +48,8 @@ public class Test implements OrganizationListener {
 		
 		g.display();
 		metaGraph.display();
+		
+		metaGraph.getNodeOrganization("A1").display();
 	}
 
 	public void connectionCreated(Object metaIndex1,

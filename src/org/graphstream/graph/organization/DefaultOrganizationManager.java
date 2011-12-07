@@ -203,12 +203,15 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 			Object n0moi = n0.getAttribute(metaOrganizationIndexAttribute);
 			Object n1moi = n1.getAttribute(metaOrganizationIndexAttribute);
 
-			if (n0moi != null && n1moi != null && !n0moi.equals(n1moi)) {
+			if (n0moi != null && n1moi != null) {
 
 				Organization org0 = organizations.get(n0moi);
 				Organization org1 = organizations.get(n1moi);
 
-				merge(org0, org1);
+				if (!n0moi.equals(n1moi))
+					org0 = merge(org0, org1);
+
+				org0.include(graph.getEdge(edgeId));
 			}
 		} else if (n0mi != null && n1mi != null) {
 			Object n0moi = n0.getAttribute(metaOrganizationIndexAttribute);
@@ -298,6 +301,8 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 							l.connectionRemoved(org.metaIndex,
 									org.metaOrganizationIndex, o.metaIndex,
 									o.metaOrganizationIndex, e.getId());
+
+					org.remove(e);
 				}
 
 				// System.out.printf("remove node \"%s\" from %s@%s%n", nodeId,
@@ -390,6 +395,8 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 							l.connectionCreated(org.metaIndex,
 									org.metaOrganizationIndex, o.metaIndex,
 									o.metaOrganizationIndex, e.getId());
+					else
+						org.include(e);
 				}
 			}
 			hardTest();

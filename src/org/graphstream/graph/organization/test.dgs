@@ -25,6 +25,14 @@ ae C12 C1 C2
 ae C13 C1 C3
 ae C23 C2 C3
 
-ae AB A1 B1
-ae AC A1 C1
-ae BC B1 C1
+an D1 meta.index="D"
+an D2 meta.index="D"
+an D3 meta.index="D"
+
+ae D12 D1 D2
+ae D13 D1 D3
+ae D23 D2 D3
+
+ae AD A1 D1
+ae BD B1 D2
+ae CD C1 D3
