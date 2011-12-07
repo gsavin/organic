@@ -100,6 +100,12 @@
 
 		<resources>
 			<!-- Resources other than classes are included here. -->
+			<resource>
+				<directory>src</directory>
+				<includes>
+					<include>org/graphstream/organization/test.dgs</include>
+				</includes>
+			</resource>
 		</resources>
 
 		<testResources>
@@ -117,6 +123,9 @@
 				<configuration>
 					<source>1.5</source>
 					<target>1.5</target>
+					<excludes>
+						<exclude>org/graphstream/organization/TestAntCo2Organization.java</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
 
@@ -188,7 +197,7 @@
 		<dependency>
 			<groupId>org.graphstream</groupId>
 			<artifactId>gs-core</artifactId>
-			<version>1.1</version>
+			<version>1.x-git</version>
 			<optional>false</optional>
 		</dependency>
 		<dependency>

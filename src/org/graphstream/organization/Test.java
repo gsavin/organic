@@ -25,10 +25,19 @@
  */
 package org.graphstream.organization;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.io.IOException;
+
+import javax.swing.BorderFactory;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import org.graphstream.graph.implementations.AdjacencyListGraph;
 import org.graphstream.stream.file.FileSourceDGS;
+import org.graphstream.ui.swingViewer.Viewer;
 
 public class Test implements OrganizationListener {
 
@@ -39,6 +48,8 @@ public class Test implements OrganizationListener {
 		FileSourceDGS dgs = new FileSourceDGS();
 		AdjacencyListGraph g = new AdjacencyListGraph("g");
 		OrganizationsGraph metaGraph = new OrganizationsGraph(g);
+		Viewer v1, v2, v3;
+		JFrame f1;
 		
 		metaGraph.getManager().setMetaIndexAttribute("meta.index");
 		metaGraph.getManager().addOrganizationListener(new Test());
@@ -46,10 +57,53 @@ public class Test implements OrganizationListener {
 		dgs.addSink(g);
 		dgs.readAll(Test.class.getResourceAsStream("test.dgs"));
 		
-		g.display();
-		metaGraph.display();
+		v1 = new Viewer(g, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+		v2 = new Viewer(metaGraph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+		v3 = new Viewer(metaGraph.getNodeOrganization("A1"), Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+		//v2 = metaGraph.display();
+		//v3 = metaGraph.getNodeOrganization("A1").display();
 		
-		metaGraph.getNodeOrganization("A1").display();
+		v1.addDefaultView(false);
+		v1.getDefaultView().setPreferredSize(new Dimension(400, 400));
+
+		v2.addDefaultView(false);
+		v2.getDefaultView().setPreferredSize(new Dimension(200, 200));
+		v3.addDefaultView(false);
+		v3.getDefaultView().setPreferredSize(new Dimension(200, 200));
+		
+		v1.enableAutoLayout();
+		v2.enableAutoLayout();
+		v3.enableAutoLayout();
+		
+		f1 = new JFrame("Organization");
+		f1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		f1.getContentPane().setLayout(new BorderLayout());
+
+		JPanel dv1, dv2, dv3;
+		dv1 = new JPanel();
+		dv1.add(v1.getDefaultView());
+		dv1.setBackground(Color.WHITE);
+		dv2 = new JPanel();
+		dv2.add(v2.getDefaultView());
+		dv2.setBackground(Color.WHITE);
+		dv3 = new JPanel();
+		dv3.add(v3.getDefaultView());
+		dv3.setBackground(Color.WHITE);
+		
+		JPanel right = new JPanel();
+		right.setLayout(new GridLayout(2,1));
+		right.add(dv2);
+		right.add(dv3);
+		
+		dv1.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+		dv2.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+		dv3.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+		
+		f1.getContentPane().add(dv1, BorderLayout.CENTER);
+		f1.getContentPane().add(right, BorderLayout.EAST);
+		
+		f1.pack();
+		f1.setVisible(true);
 	}
 
 	public void connectionCreated(Object metaIndex1,
