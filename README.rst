@@ -12,8 +12,8 @@ nodes that share a common *meta index*.
 Required project
 ======================================================================
 
-- gs-core
-- gs-subgraph
+- graphstream/gs-core
+- gsavin/gs-subgraph
 
 
 User guide
