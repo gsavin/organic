@@ -2,15 +2,16 @@
 Organizations
 ======================================================================
 
-.. contents::
-
-
 Description
 ======================================================================
 
 Organization is a project to reify and maintain organizations
 structure in a dynamic graph. An organization is a connected set of
 nodes that share a common *meta index*.
+
+
+.. contents:: Contents
+
 
 Required project
 ======================================================================
