@@ -5,6 +5,10 @@ Organizations
 Description
 ======================================================================
 
+Organization is a project to reify and maintain organizations
+structure in a dynamic graph. An organization is a connected set of
+nodes that share a common *meta index*.
+
 Required project
 ======================================================================
 
@@ -41,7 +45,7 @@ organizations :
 
 - ``edge added``, can lead to a *merge* operation;
 - ``edge removed``, can lead to a *mitose* operation;
-- ``node removed``
+- ``node removed``, changes the organization content;
 - ``node meta index changed``, can lead to both *merge* or *mitose*
   operations.
 
@@ -72,3 +76,34 @@ What event is triggered ?
 
 Validation
 ----------------------------------------------------------------------
+
+Hard test
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Organizations have a dedicated method to check the validity of their
+structure. The structure of an organization is valid if exactly all
+nodes of this organization can be reached from the root node by
+exploring connected nodes with the same organization index.
+
+Following is the pseudo-algorithm used to check the integrity of the
+structure ::
+
+  reached = []
+  toVisit = []
+
+  toVisit.append(org.root)
+
+  while len(toVisit) > 0:
+    node = toVisit.pop()
+    reached.append(node)
+
+    for edge in node.connectedEdges:
+      o = edge.oppositeOf(node)
+      if o.metaOrganizationIndex == node.metaOrganizationIndex:
+        toVisit.append(o)
+  
+  if len(reached - org.nodes) > 0:
+    produce an error
+  
+  if len(org.nodes - reached) > 0:
+    produce an error
