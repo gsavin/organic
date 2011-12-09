@@ -29,14 +29,14 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.io.IOException;
+import java.util.Random;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import org.graphstream.algorithm.Toolkit;
 import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.AdjacencyListGraph;
 import org.graphstream.stream.file.FileSinkImages;
 import org.graphstream.stream.file.FileSourceDGS;
@@ -47,7 +47,35 @@ import org.graphstream.stream.file.FileSinkImages.Resolutions;
 import org.graphstream.ui.swingViewer.Viewer;
 
 public class Test implements OrganizationListener {
+	public static Node randomNode(Graph graph) {
+		return randomNode(graph, new Random());
+	}
 
+	/**
+	 * Choose a node at random.
+	 * 
+	 * @param random
+	 *            The random number generator to use.
+	 * @return A node chosen at random, null if the graph is empty.
+	 * @complexity O(1).
+	 */
+	public static Node randomNode(Graph graph, Random random) {
+		int n = graph.getNodeCount();
+
+		if (n > 0) {
+			return graph.getNode(random.nextInt(n));
+//			int r = random.nextInt(n);
+//			int i = 0;
+//
+//			for (Node node : graph) {
+//				if (r == i)
+//					return node;
+//				i++;
+//			}
+		}
+
+		return null;
+	}
 	/**
 	 * @param args
 	 */
@@ -82,8 +110,7 @@ public class Test implements OrganizationListener {
 		
 		// g.display(false);
 		// metaGraph.display();
-		complexDisplay(g, metaGraph, metaGraph.getNodeOrganization(Toolkit
-				.randomNode(g).getId()));
+		complexDisplay(g, metaGraph, metaGraph.getNodeOrganization(randomNode(g).getId()));
 
 		//images1.end();
 		//images2.end();
