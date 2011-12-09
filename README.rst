@@ -53,6 +53,46 @@ organizations :
 - ``node meta index changed``, can lead to both *merge* or *mitose*
   operations.
 
+Algorithms
+----------------------------------------------------------------------
+
+checkRootNode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+merge
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Input**
+  *org1*, *org2* : two organizations to merge, assuming that *org1* is
+  biggest that *org2*.
+**Output**
+  result of the merge : *org1* increases with *org2*. *org2* is
+  removed in this operation.
+
+Begin::
+
+ nodes = org2.nodes
+ 
+ for node in nodes:
+   org2.remove(node)
+   org1.include(node)
+ 
+ trigger organizationMerged
+ trigger organizationRemoved
+
+ remove org2
+
+ checkRootNode(org1)
+ 
+ invoke validation
+
+ return org1
+
+
+mitose
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 Organization listener
 ----------------------------------------------------------------------
