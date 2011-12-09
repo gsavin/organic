@@ -76,20 +76,14 @@ public class Test implements OrganizationListener {
 		metaGraph.getManager().setMetaIndexAttribute("meta.index");
 		// metaGraph.getManager().addOrganizationListener(new Test());
 
+
+		dgs.addSink(g);
+		dgs.readAll(Test.class.getResourceAsStream("test.dgs"));
+		
 		// g.display(false);
 		// metaGraph.display();
 		complexDisplay(g, metaGraph, metaGraph.getNodeOrganization(Toolkit
 				.randomNode(g).getId()));
-
-		dgs.addSink(g);
-		dgs.begin(Test.class.getResourceAsStream("test.dgs"));
-
-		int step = 0;
-
-		while (dgs.nextStep()) {
-			Thread.sleep(100);
-			//System.out.printf("step #%d\n", step++);
-		}
 
 		//images1.end();
 		//images2.end();
