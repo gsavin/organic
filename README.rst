@@ -59,9 +59,37 @@ Algorithms
 checkRootNode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+This operation is used to set the root node of an organization as the
+node the most connected with other nodes of this organization.
+
+**Input**
+  org : the organization to check the root.
+
+Begin::
+
+ root = none
+ count = -1
+ 
+ for node in org.nodes:
+   c = connections count of node
+   
+   if c > count:
+     root = node
+     count = c
+ 
+ if root is not org.root:
+   org.root = root
+   trigger rootNodeUpdated
+
+
+checkOrganization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 merge
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This operation merges two organizations. It has to be called when a
+connection is detected between these organizations.
 
 **Input**
   *org1*, *org2* : two organizations to merge, assuming that *org1* is
@@ -92,6 +120,32 @@ Begin::
 
 mitose
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This operation is called when the organization structure is
+disconnected.
+
+**Input**
+  base : the organization to split.
+  orphans : list of nodes not connected anymore to the organization
+  structure.
+**Output**
+  produce at least one more organization.
+
+Begin::
+
+ for node in orphans:
+   base.remove(node)
+ 
+ assert base.nodes.size() > 0
+ 
+ suborg = create new organization including nodes in orphans
+ 
+ trigger organizationCreated
+ trigger organizationSplited
+ 
+ checkOrganization(suborg)
+ 
+ invoke validation
 
 
 Organization listener
