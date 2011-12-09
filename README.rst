@@ -48,8 +48,10 @@ Following is the list of events that can lead to change in
 organizations :
 
 - ``edge added``, can lead to a *merge* operation;
-- ``edge removed``, can lead to a *mitose* operation;
-- ``node removed``, changes the organization content;
+- ``edge removed``, can lead to a *mitose* operation; edge is removed
+  from its organization and ``checkOrganization`` is called 
+- ``node removed``, changes the organization content; node is removed
+  from its organization and ``checkOrganization`` is called 
 - ``node meta index changed``, can lead to both *merge* or *mitose*
   operations.
 

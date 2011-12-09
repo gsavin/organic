@@ -36,4 +36,15 @@ public class ValidationException extends RuntimeException {
 	public ValidationException(String message, Object... args) {
 		super(String.format(message, args));
 	}
+	
+	public ValidationException(Throwable cause, Organization org, String message,
+			Object... args) {
+		super(String.format("[%s@%s] %s", org.metaOrganizationIndex,
+				org.metaIndex, String.format(message, args)), cause);
+	}
+
+	public ValidationException(Organization org, String message, Object... args) {
+		super(String.format("[%s@%s] %s", org.metaOrganizationIndex,
+				org.metaIndex, String.format(message, args)));
+	}
 }

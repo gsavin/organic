@@ -37,6 +37,7 @@ import org.graphstream.graph.Node;
 import org.graphstream.graph.subgraph.Conditions;
 import org.graphstream.graph.subgraph.IncludeCondition;
 import org.graphstream.graph.subgraph.SubGraph;
+import org.graphstream.organization.Validation.Level;
 
 /**
  * An organization in a graph. Organizations are a connected set of nodes which
@@ -45,7 +46,8 @@ import org.graphstream.graph.subgraph.SubGraph;
  * @author Guilhelm Savin
  * 
  */
-public class Organization extends SubGraph implements IncludeCondition {
+public class Organization extends SubGraph implements IncludeCondition,
+		Validable {
 
 	static class ColorProvider {
 
@@ -129,12 +131,25 @@ public class Organization extends SubGraph implements IncludeCondition {
 				include(n);
 
 			for (Edge e : n.getEdgeSet()) {
+				if (!manager.isAvailable(e))
+					continue;
+				
 				Node o = e.getOpposite(n);
 
 				if (!nodes.contains(o.getId())
 						&& o.hasAttribute(manager.metaIndexAttribute)
 						&& metaIndex.equals(o
 								.getAttribute(manager.metaIndexAttribute))) {
+					Object omoi = o
+							.getAttribute(manager.metaOrganizationIndexAttribute);
+
+					if (omoi != null && !omoi.equals(metaOrganizationIndex))
+						throw new RuntimeException(
+								String
+										.format(
+												"WTF ? Merge missing via edge '%s' (node is '%s')",
+												e.getId(), o.getId()));
+
 					toVisit.addLast(o);
 				}
 			}
@@ -165,27 +180,28 @@ public class Organization extends SubGraph implements IncludeCondition {
 	}
 
 	public void include(Element e) {
+		Object emi = e.getAttribute(manager.metaIndexAttribute);
+		Object emoi = e.getAttribute(manager.metaOrganizationIndexAttribute);
 
-		if (e.hasAttribute(manager.metaIndexAttribute)
-				&& !metaIndex
-						.equals(e.getAttribute(manager.metaIndexAttribute)))
+		if (emi != null && !metaIndex.equals(emi))
 			throw new Error("try to include a node with bad meta index");
 
-		if (e.hasAttribute(manager.metaOrganizationIndexAttribute)) {
-			if (metaOrganizationIndex.equals(e
-					.getAttribute(manager.metaOrganizationIndexAttribute))) {
+		if (emoi != null) {
+			if (metaOrganizationIndex.equals(emoi)) {
 				/*
 				 * System.err.printf(
 				 * "warning: include twice node \"%s\" in %s@%s%n", e.getId(),
 				 * metaOrganizationIndex, metaIndex);
 				 */
 			} else {
-				throw new Error(String.format(
-						"element \"%s\" already in %s@%s, including in %s@%s",
-						e.getId(),
-						e.getAttribute(manager.metaOrganizationIndexAttribute),
-						e.getAttribute(manager.metaIndexAttribute),
-						metaOrganizationIndex, metaIndex));
+				throw new Error(
+						String
+								.format(
+										"element \"%s\" already in %s@%s, including in %s@%s (really ? %s)",
+										e.getId(), emoi, emi,
+										metaOrganizationIndex, metaIndex,
+										manager.getOrganization(emoi).isInside(
+												e)));
 			}
 		} else {
 			e.setAttribute(manager.metaOrganizationIndexAttribute,
@@ -258,9 +274,10 @@ public class Organization extends SubGraph implements IncludeCondition {
 				metaIndex, Arrays.toString(nodes.toArray()));
 	}
 
-	public void hardTest() throws HardTestException {
+	public void validate(Level level) throws ValidationException {
 		LinkedList<String> reached = new LinkedList<String>();
 		LinkedList<Node> toVisit = new LinkedList<Node>();
+		// LinkedList<String> crossed = new LinkedList<String>();
 
 		if (organizationRoot == null)
 			throw new Error("root is null");
@@ -272,49 +289,45 @@ public class Organization extends SubGraph implements IncludeCondition {
 			reached.add(n.getId());
 
 			for (Edge e : n.getEdgeSet()) {
+				if (!edges.contains(e.getId()))
+					continue;
+
 				Node o = e.getOpposite(n);
-				/*
-				 * if (nodes.contains(o.getId()) && !reached.contains(o.getId())
-				 * && !toVisit.contains(o)) { toVisit.addLast(o); }
-				 */
-				if (nodes.contains(o.getId())
-						&& metaOrganizationIndex
-								.equals(o
-										.getAttribute(manager.metaOrganizationIndexAttribute))
-						&& !reached.contains(o.getId()) && !toVisit.contains(o)) {
-					toVisit.addLast(o);
+
+				if (metaOrganizationIndex.equals(o
+						.getAttribute(manager.metaOrganizationIndexAttribute))) {
+					if (!reached.contains(o.getId()) && !toVisit.contains(o))
+						toVisit.addLast(o);
+					// if (!crossed.contains(e.getId()))
+					// crossed.add(e.getId());
 				}
 			}
 		}
 
-		//if (nodes.size() != reached.size())
-		//	throw new HardTestException(this,
-		//			"got different sizes, %d expected, got %d", nodes.size(),
-		//			reached.size());
-
 		for (String id : reached) {
 			if (!nodes.contains(id))
-				throw new HardTestException(this, "unknown node reached, '%s'",
-						id);
+				throw new ValidationException(this,
+						"unknown node reached, '%s'", id);
 		}
 
 		for (String id : nodes) {
 			if (!reached.contains(id))
-				throw new HardTestException(this, "known node unreached, '%s'",
-						id);
+				throw new ValidationException(this,
+						"known node unreached, '%s'", id);
 		}
-
-		boolean stable = true;
-
+		/*
+		 * for (String id : crossed) { if (!edges.contains(id)) throw new
+		 * ValidationException(this, "unknown edge crossed, '%s'", id); }
+		 * 
+		 * for (String id : edges) { if (!crossed.contains(id)) throw new
+		 * ValidationException(this, "known edge uncrossed, '%s'", id); }
+		 */
 		for (String id : nodes) {
 			Node n = fullGraph.getNode(id);
-			stable = stable
-					&& metaIndex.equals(n
-							.getAttribute(manager.metaIndexAttribute));
 
 			if (!metaIndex.equals(n.getAttribute(manager.metaIndexAttribute)))
-				throw new HardTestException(this, "known node unreached, '%s'",
-						id);
+				throw new ValidationException(this,
+						"known node unreached, '%s'", id);
 
 			for (Edge e : n.getEdgeSet()) {
 				Node o = e.getOpposite(n);
@@ -323,11 +336,11 @@ public class Organization extends SubGraph implements IncludeCondition {
 
 				if (nodes.contains(o.getId())) {
 					if (!metaOrganizationIndex.equals(omoi))
-						throw new HardTestException(this,
+						throw new ValidationException(this,
 								"node should not be included '%s'", o.getId());
 				} else {
 					if (metaOrganizationIndex.equals(omoi))
-						throw new HardTestException(this,
+						throw new ValidationException(this,
 								"node should be included '%s'", o.getId());
 				}
 			}
@@ -398,15 +411,16 @@ public class Organization extends SubGraph implements IncludeCondition {
 			reached.add(n.getId());
 
 			for (Edge e : n.getEdgeSet()) {
+				if (!edges.contains(e.getId()))
+					continue;
+
 				Node o = e.getOpposite(n);
 				/*
 				 * if (nodes.contains(o.getId()) && !reached.contains(o.getId())
 				 * && !toVisit.contains(o)) { toVisit.addLast(o); }
 				 */
-				if (nodes.contains(o.getId())
-						&& metaOrganizationIndex
-								.equals(o
-										.getAttribute(manager.metaOrganizationIndexAttribute))
+				if (metaOrganizationIndex.equals(o
+						.getAttribute(manager.metaOrganizationIndexAttribute))
 						&& !reached.contains(o.getId()) && !toVisit.contains(o)) {
 					toVisit.addLast(o);
 				}

@@ -25,39 +25,38 @@
  */
 package org.graphstream.organization;
 
-import org.graphstream.organization.Validator.Level;
 
 public class Validation {
 	public static final String PROPERTY = "org.graphstream.organization.validation";
 
-	public static Level getValidationLevel() {
-		Level l;
+	public static Validation.Level getValidationLevel() {
+		Validation.Level l;
 
 		String p = System.getProperty(PROPERTY, "HARD");
 		p = p.toUpperCase();
 
 		try {
-			l = Level.valueOf(p);
+			l = Validation.Level.valueOf(p);
 		} catch (IllegalArgumentException e) {
 			System.err.printf("Invalid validation level '%s'\n", p);
 			System.err.printf("Available level are :\n");
 
-			for (Level al : Level.values())
+			for (Validation.Level al : Validation.Level.values())
 				System.err.printf("- %s\n", al.name());
 
 			System.err.printf("Switch to NONE\n");
-			l = Level.NONE;
+			l = Validation.Level.NONE;
 		}
 
 		return l;
 	}
 
 	public static Validator getValidator(OrganizationManager manager) {
-		Level l = getValidationLevel();
+		Validation.Level l = getValidationLevel();
 
 		switch (l) {
-		case HARD:
-			return new HardLevelValidator(manager);
+		case SKEPTICAL:
+			return new DefaultValidator(l, manager);
 		case NONE:
 			return new PassiveValidator();
 		}
@@ -65,27 +64,33 @@ public class Validation {
 		return null;
 	}
 
-	static class PassiveValidator implements Validator {
+	static class PassiveValidator extends Validator {
 		public void validate(String context, Object... args) {
 			// Nothing because it is passive.
 		}
 	}
 	
-	static class HardLevelValidator implements Validator {
+	static class DefaultValidator extends Validator {
 		OrganizationManager manager;
+		Level level;
 
-		HardLevelValidator(OrganizationManager manager) {
+		DefaultValidator(Level level, OrganizationManager manager) {
 			this.manager = manager;
+			this.level = level;
 		}
 
 		public void validate(String context, Object... args) {
 			for (Organization org : manager) {
 				try {
-					org.hardTest();
-				} catch (HardTestException e) {
+					org.validate(level);
+				} catch (ValidationException e) {
 					throw new ValidationException(e, context, args);
 				}
 			}
 		}
+	}
+
+	public static enum Level {
+		NONE, SKEPTICAL, PARANOID
 	}
 }

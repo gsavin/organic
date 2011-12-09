@@ -25,17 +25,8 @@
  */
 package org.graphstream.organization;
 
-public class HardTestException extends RuntimeException {
-	private static final long serialVersionUID = 7331688647824604470L;
+import org.graphstream.organization.Validation.Level;
 
-	public HardTestException(Throwable cause, Organization org, String message,
-			Object... args) {
-		super(String.format("[%s@%s] %s", org.metaOrganizationIndex,
-				org.metaIndex, String.format(message, args)), cause);
-	}
-
-	public HardTestException(Organization org, String message, Object... args) {
-		super(String.format("[%s@%s] %s", org.metaOrganizationIndex,
-				org.metaIndex, String.format(message, args)));
-	}
+public interface Validable {
+	void validate(Level level) throws ValidationException;
 }

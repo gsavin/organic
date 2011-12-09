@@ -25,6 +25,7 @@
  */
 package org.graphstream.organization;
 
+import org.graphstream.graph.Element;
 import org.graphstream.graph.Graph;
 
 public interface OrganizationManager extends Iterable<Organization> {
@@ -43,4 +44,6 @@ public interface OrganizationManager extends Iterable<Organization> {
 	void addOrganizationListener(OrganizationListener l);
 
 	void removeOrganizationListener(OrganizationListener l);
+	
+	boolean isAvailable(Element e);
 }

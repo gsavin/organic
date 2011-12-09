@@ -84,22 +84,6 @@ public class Test implements OrganizationListener {
 		AdjacencyListGraph g = new AdjacencyListGraph("g");
 		OrganizationsGraph metaGraph = new OrganizationsGraph(g);
 
-		FileSinkImages images1 = new FileSinkImages();
-		images1.setQuality(Quality.HIGH);
-		images1.setOutputPolicy(OutputPolicy.BY_STEP);
-
-		FileSinkImages images2 = new FileSinkImages();
-		images2.setResolution(Resolutions.VGA);
-		images2.setQuality(Quality.HIGH);
-		images2.setOutputPolicy(OutputPolicy.BY_STEP);
-		images2.setLayoutPolicy(LayoutPolicy.COMPUTED_AT_NEW_IMAGE);
-		images2.setLayoutStepPerFrame(5);
-
-		// g.addSink(images1);
-		// metaGraph.addSink(images2);
-
-		// images1.begin("entities_");
-		// images2.begin("meta_");
 
 		metaGraph.getManager().setMetaIndexAttribute("meta.index");
 		// metaGraph.getManager().addOrganizationListener(new Test());
@@ -112,8 +96,6 @@ public class Test implements OrganizationListener {
 		// metaGraph.display();
 		complexDisplay(g, metaGraph, metaGraph.getNodeOrganization(randomNode(g).getId()));
 
-		//images1.end();
-		//images2.end();
 	}
 
 	protected static void complexDisplay(Graph g1, Graph g2, Graph g3) {

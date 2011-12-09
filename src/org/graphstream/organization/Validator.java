@@ -25,13 +25,9 @@
  */
 package org.graphstream.organization;
 
-public interface Validator {
-	public static enum Level {
-		NONE, HARD
-	}
-	
+public abstract class Validator {
 	/**
 	 * Have to be call each time a validation is needed.
 	 */
-	void validate(String context, Object... args);
+	public abstract void validate(String context, Object... args);
 }

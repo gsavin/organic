@@ -97,6 +97,8 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 
 	protected Validator validator;
 
+	protected Edge edgeBeingRemoved;
+	
 	public DefaultOrganizationManager() {
 		this.organizations = new HashMap<Object, Organization>();
 		this.listeners = new LinkedList<OrganizationListener>();
@@ -162,6 +164,10 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 		listeners.remove(l);
 	}
 
+	public boolean isAvailable(Element e) {
+		return e != edgeBeingRemoved;
+	}
+	
 	public int getOrganizationCount() {
 		return organizations.size();
 	}
@@ -230,8 +236,9 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 
 	public void edgeRemoved(String sourceId, long timeId, String edgeId) {
 
-		Edge e = graph.getEdge(edgeId);
-		elementRemoved(e);
+		edgeBeingRemoved = graph.getEdge(edgeId);
+		elementRemoved(edgeBeingRemoved);
+		edgeBeingRemoved = null;
 
 		validator.validate("after removing edge '%s'", edgeId);
 	}
