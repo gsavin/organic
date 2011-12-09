@@ -85,6 +85,36 @@ Begin::
 checkOrganization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+This operation checks if the organization structure is connected.
+
+**Input**
+  *org* : the organization we want to check.
+
+Begin::
+
+ reached = []
+ toVisit = []
+
+ toVisit.append(org.root)
+ 
+ while len(toVisit) > 0:
+   node = toVisit.pop()
+   reached.append(node)
+   
+   for edge in node.connectedEdges:
+     if edge is in org:
+       o = edge.oppositeOf(node)
+       
+       if o.metaOrganizationIndex == node.metaOrganizationIndex:
+         toVisit.append(o)
+ 
+ if reached != org.nodes:
+   notReached = org.nodes - reached
+   mitose(org, notReached)
+   
+   checkRootNode(org)
+ 
+
 merge
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -174,6 +204,10 @@ What event is triggered ?
 
 Validation
 ----------------------------------------------------------------------
+
+- ``none``
+- ``skeptical``
+- ``paranoid``
 
 Hard test
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
