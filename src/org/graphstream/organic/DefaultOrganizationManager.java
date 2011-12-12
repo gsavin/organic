@@ -23,7 +23,7 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C and LGPL licenses and that you accept their terms.
  */
-package org.graphstream.organization;
+package org.graphstream.organic;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,8 +35,8 @@ import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
-import org.graphstream.organization.OrganizationListener.ChangeType;
-import org.graphstream.organization.OrganizationListener.ElementType;
+import org.graphstream.organic.OrganizationListener.ChangeType;
+import org.graphstream.organic.OrganizationListener.ElementType;
 import org.graphstream.stream.ElementSink;
 import org.graphstream.stream.SinkAdapter;
 

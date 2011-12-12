@@ -23,10 +23,28 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C and LGPL licenses and that you accept their terms.
  */
-package org.graphstream.organization;
+package org.graphstream.organic;
 
-import org.graphstream.organization.Validation.Level;
+public class ValidationException extends RuntimeException {
+	private static final long serialVersionUID = -1463403368251501898L;
 
-public interface Validable {
-	void validate(Level level) throws ValidationException;
+	public ValidationException(Throwable cause, String message,
+			Object... args) {
+		super(String.format(message, args), cause);
+	}
+
+	public ValidationException(String message, Object... args) {
+		super(String.format(message, args));
+	}
+	
+	public ValidationException(Throwable cause, Organization org, String message,
+			Object... args) {
+		super(String.format("[%s@%s] %s", org.metaOrganizationIndex,
+				org.metaIndex, String.format(message, args)), cause);
+	}
+
+	public ValidationException(Organization org, String message, Object... args) {
+		super(String.format("[%s@%s] %s", org.metaOrganizationIndex,
+				org.metaIndex, String.format(message, args)));
+	}
 }

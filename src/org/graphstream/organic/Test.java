@@ -23,13 +23,14 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C and LGPL licenses and that you accept their terms.
  */
-package org.graphstream.organization;
+package org.graphstream.organic;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -38,6 +39,7 @@ import javax.swing.JPanel;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.AdjacencyListGraph;
+import org.graphstream.organic.ui.OrganizationsView;
 import org.graphstream.stream.file.FileSinkImages;
 import org.graphstream.stream.file.FileSourceDGS;
 import org.graphstream.stream.file.FileSinkImages.LayoutPolicy;
@@ -80,6 +82,10 @@ public class Test implements OrganizationListener {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
+		//Thread.sleep(10000);
+		//System.setProperty("gs.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+		System.setProperty("org.graphstream.organization.validation", "none");
+		
 		FileSourceDGS dgs = new FileSourceDGS();
 		AdjacencyListGraph g = new AdjacencyListGraph("g");
 		OrganizationsGraph metaGraph = new OrganizationsGraph(g);
@@ -91,11 +97,21 @@ public class Test implements OrganizationListener {
 
 		dgs.addSink(g);
 		dgs.readAll(Test.class.getResourceAsStream("test.dgs"));
+		//dgs.begin(Test.class.getResourceAsStream("BoidsMovie+antco2.dgs"));
 		
 		// g.display(false);
 		// metaGraph.display();
-		complexDisplay(g, metaGraph, metaGraph.getNodeOrganization(randomNode(g).getId()));
-
+		//complexDisplay(g, metaGraph, metaGraph.getNodeOrganization(randomNode(g).getId()));
+		OrganizationsView ui = new OrganizationsView(metaGraph);
+		ui.enableHQ();
+		ui.getMetaViewer().enableAutoLayout();
+		ui.enableEntitiesLayout();
+		ui.createFrame().repaint();
+		
+		//while(dgs.nextEvents())
+		//	ui.pumpEvents();
+		
+		ui.pumpLoop(new AtomicBoolean(true), 250);
 	}
 
 	protected static void complexDisplay(Graph g1, Graph g2, Graph g3) {

@@ -23,38 +23,10 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C and LGPL licenses and that you accept their terms.
  */
-package org.graphstream.organization;
+package org.graphstream.organic;
 
-import java.util.concurrent.TimeUnit;
+import org.graphstream.organic.Validation.Level;
 
-import org.graphstream.stream.SourceBase;
-
-public class FakeStepSource extends SourceBase implements Runnable {
-	protected long delay;
-	protected TimeUnit unit;
-	protected boolean active;
-	protected double step;
-	
-	public FakeStepSource(long delay, TimeUnit unit) {
-		this.delay = delay;
-		this.unit  = unit;
-	}
-	
-	public void start() {
-		if(!active) {
-			Thread t = new Thread(this);
-			t.setDaemon(true);
-			t.start();
-		}
-	}
-	
-	public void run() {
-		active = true;
-		while(active) {
-			this.sendStepBegins(sourceId, step++);
-			try {
-				Thread.sleep(TimeUnit.MILLISECONDS.convert(delay, unit));
-			} catch(Exception e ) { e.printStackTrace(); }
-		}
-	}
+public interface Validable {
+	void validate(Level level) throws ValidationException;
 }

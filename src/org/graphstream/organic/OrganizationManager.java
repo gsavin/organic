@@ -23,11 +23,27 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C and LGPL licenses and that you accept their terms.
  */
-package org.graphstream.organization;
+package org.graphstream.organic;
 
-public abstract class Validator {
-	/**
-	 * Have to be call each time a validation is needed.
-	 */
-	public abstract void validate(String context, Object... args);
+import org.graphstream.graph.Element;
+import org.graphstream.graph.Graph;
+
+public interface OrganizationManager extends Iterable<Organization> {
+	void init(Graph g);
+
+	String getMetaIndexAttribute();
+
+	String getMetaOrganizationIndexAttribute();
+
+	void setMetaIndexAttribute(String key);
+
+	void setMetaOrganizationIndexAttribute(String key);
+
+	Organization getOrganization(Object id);
+
+	void addOrganizationListener(OrganizationListener l);
+
+	void removeOrganizationListener(OrganizationListener l);
+	
+	boolean isAvailable(Element e);
 }

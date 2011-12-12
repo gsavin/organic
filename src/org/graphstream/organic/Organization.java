@@ -23,7 +23,7 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C and LGPL licenses and that you accept their terms.
  */
-package org.graphstream.organization;
+package org.graphstream.organic;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,7 +37,7 @@ import org.graphstream.graph.Node;
 import org.graphstream.graph.subgraph.Conditions;
 import org.graphstream.graph.subgraph.IncludeCondition;
 import org.graphstream.graph.subgraph.SubGraph;
-import org.graphstream.organization.Validation.Level;
+import org.graphstream.organic.Validation.Level;
 
 /**
  * An organization in a graph. Organizations are a connected set of nodes which

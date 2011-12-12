@@ -23,7 +23,7 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C and LGPL licenses and that you accept their terms.
  */
-package org.graphstream.organization;
+package org.graphstream.organic;
 
 import java.util.HashSet;
 
@@ -68,6 +68,10 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 		addAttribute("ui.stylesheet", DEFAULT_CSS);
 	}
 
+	public Graph getEntitiesGraph() {
+		return entitiesGraph;
+	}
+	
 	public OrganizationManager getManager() {
 		return manager;
 	}
