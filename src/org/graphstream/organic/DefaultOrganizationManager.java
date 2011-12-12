@@ -25,31 +25,21 @@
  */
 package org.graphstream.organic;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
-import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.organic.OrganizationListener.ChangeType;
 import org.graphstream.organic.OrganizationListener.ElementType;
 import org.graphstream.stream.ElementSink;
-import org.graphstream.stream.SinkAdapter;
 
 /**
  * 
- * Algorithmes :
- * 
- * __meta_index__(e) : the meta index of element e
- * __meta_organization_index__(e) : the index of the organization of element e
- * __meta_index_added__(node,metaIndex)
  */
-public class DefaultOrganizationManager extends SinkAdapter implements
-		OrganizationManager {
+public class DefaultOrganizationManager extends OrganizationManager {
 
 	static class IdGenerator {
 
@@ -84,29 +74,11 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 		}
 	}
 
-	protected String metaIndexAttribute = "meta.index";
-	protected String metaOrganizationIndexAttribute = "meta.organization.index";
-
-	final HashMap<Object, Organization> organizations;
-
-	Graph graph;
-
-	protected LinkedList<OrganizationListener> listeners;
-
 	protected final IdGenerator idGenerator = new IdGenerator();
 
-	protected Validator validator;
-
 	protected Edge edgeBeingRemoved;
-	
+
 	public DefaultOrganizationManager() {
-		this.organizations = new HashMap<Object, Organization>();
-		this.listeners = new LinkedList<OrganizationListener>();
-
-		validator = Validation.getValidator(this);
-
-		System.out.printf("Validation level is set to '%s'\n", Validation
-				.getValidationLevel().name().toLowerCase());
 	}
 
 	public DefaultOrganizationManager(String metaIndexAttribute) {
@@ -123,51 +95,10 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 		this.metaOrganizationIndexAttribute = metaOrganizationIndexAttribute;
 	}
 
-	public void init(Graph g) {
-		if (graph != null)
-			graph.removeSink(this);
-
-		graph = g;
-		graph.addSink(this);
-	}
-
-	public Organization getOrganization(Object metaOrganizationIndex) {
-		return organizations.get(metaOrganizationIndex);
-	}
-
-	public Iterator<Organization> iterator() {
-		return organizations.values().iterator();
-	}
-
-	public void setMetaIndexAttribute(String metaIndexAttribute) {
-		this.metaIndexAttribute = metaIndexAttribute;
-	}
-
-	public void setMetaOrganizationIndexAttribute(
-			String metaOrganizationIndexAttribute) {
-		this.metaOrganizationIndexAttribute = metaOrganizationIndexAttribute;
-	}
-
-	public String getMetaIndexAttribute() {
-		return metaIndexAttribute;
-	}
-
-	public String getMetaOrganizationIndexAttribute() {
-		return metaOrganizationIndexAttribute;
-	}
-
-	public void addOrganizationListener(OrganizationListener l) {
-		listeners.addLast(l);
-	}
-
-	public void removeOrganizationListener(OrganizationListener l) {
-		listeners.remove(l);
-	}
-
 	public boolean isAvailable(Element e) {
 		return e != edgeBeingRemoved;
 	}
-	
+
 	public int getOrganizationCount() {
 		return organizations.size();
 	}
@@ -188,7 +119,7 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 	}
 
 	public void nodeRemoved(String sourceId, long timeId, String nodeId) {
-		Node n = graph.getNode(nodeId);
+		Node n = entitiesGraph.getNode(nodeId);
 		elementRemoved(n);
 
 		validator.validate("after remove node '%s'", nodeId);
@@ -197,8 +128,8 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 	public void edgeAdded(String sourceId, long timeId, String edgeId,
 			String fromNodeId, String toNodeId, boolean directed) {
 
-		Node n0 = graph.getNode(fromNodeId);
-		Node n1 = graph.getNode(toNodeId);
+		Node n0 = entitiesGraph.getNode(fromNodeId);
+		Node n1 = entitiesGraph.getNode(toNodeId);
 
 		Object n0mi = n0.getAttribute(metaIndexAttribute);
 		Object n1mi = n1.getAttribute(metaIndexAttribute);
@@ -215,7 +146,7 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 				if (!n0moi.equals(n1moi))
 					org0 = merge(org0, org1);
 
-				org0.include(graph.getEdge(edgeId));
+				org0.include(entitiesGraph.getEdge(edgeId));
 			}
 
 			validator.validate("after adding edge '%s' between '%s' and '%s'",
@@ -229,14 +160,15 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 					l.connectionCreated(n0mi, n0moi, n1mi, n1moi, edgeId);
 			}
 
-			validator.validate("after adding connection '%s' between '%s' and '%s'",
+			validator.validate(
+					"after adding connection '%s' between '%s' and '%s'",
 					edgeId, fromNodeId, toNodeId);
 		}
 	}
 
 	public void edgeRemoved(String sourceId, long timeId, String edgeId) {
 
-		edgeBeingRemoved = graph.getEdge(edgeId);
+		edgeBeingRemoved = entitiesGraph.getEdge(edgeId);
 		elementRemoved(edgeBeingRemoved);
 		edgeBeingRemoved = null;
 
@@ -258,7 +190,7 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 
 		if (metaIndexAttribute.equals(attributeId)) {
 
-			Node n = graph.getNode(nodeId);
+			Node n = entitiesGraph.getNode(nodeId);
 			Object nmoi = n.getAttribute(metaOrganizationIndexAttribute);
 
 			if (nmoi != null) {
@@ -293,7 +225,7 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 			// System.out.printf("update meta index of \"%s\" %s --> %s%n",
 			// nodeId, oldValue, newValue);
 
-			Node n = graph.getNode(nodeId);
+			Node n = entitiesGraph.getNode(nodeId);
 
 			if (oldValue != null
 					&& n.hasAttribute(metaOrganizationIndexAttribute)) {
@@ -375,8 +307,7 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 						if (merged == null) {
 							merged = o;
 							merged.include(n);
-						}
-						else {
+						} else {
 							if (!merged.metaIndex.equals(o.metaIndex))
 								throw new Error(
 										String
@@ -422,7 +353,7 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 	protected Organization createNewOrganization(Object metaIndex, Node root) {
 		String id = idGenerator.getNewId();
 
-		Organization org = new Organization(this, metaIndex, id, graph, root);
+		Organization org = new Organization(this, metaIndex, id, entitiesGraph, root);
 		organizations.put(id, org);
 
 		org.addElementSink(new OrganizationChangeListener(org.metaIndex,
@@ -430,6 +361,8 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 
 		for (OrganizationListener l : listeners)
 			l.organizationCreated(metaIndex, id, root.getId());
+		
+		org.init();
 
 		return org;
 	}
@@ -482,16 +415,16 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 		String id = idGenerator.getNewId();
 
 		for (String nodeId : orphans) {
-			Node n = graph.getNode(nodeId);
+			Node n = entitiesGraph.getNode(nodeId);
 			base.remove(n);
 		}
 
 		if (base.getNodeCount() == 0)
 			throw new Error("base is empty");
 
-		Node subroot = graph.getNode(orphans.poll());
-		Organization mitose = new Organization(this, base.metaIndex, id, graph,
-				subroot, orphans);
+		Node subroot = entitiesGraph.getNode(orphans.poll());
+		Organization mitose = new Organization(this, base.metaIndex, id,
+				entitiesGraph, subroot);
 		organizations.put(id, mitose);
 		mitose.addElementSink(new OrganizationChangeListener(mitose.metaIndex,
 				mitose.metaOrganizationIndex));
@@ -500,6 +433,13 @@ public class DefaultOrganizationManager extends SinkAdapter implements
 			l.organizationCreated(mitose.metaIndex,
 					mitose.metaOrganizationIndex, mitose.organizationRoot
 							.getId());
+
+		mitose.init();
+		
+		for (String orphan : orphans) {
+			Node orphanNode = entitiesGraph.getNode(orphan);
+			mitose.include(orphanNode);
+		}
 
 		for (OrganizationListener l : listeners)
 			l.organizationSplited(base.metaIndex, base.metaOrganizationIndex,

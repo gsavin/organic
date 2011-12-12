@@ -27,7 +27,7 @@ package org.graphstream.organic;
 
 
 public class Validation {
-	public static final String PROPERTY = "org.graphstream.organization.validation";
+	public static final String PROPERTY = "org.graphstream.organic.validation";
 
 	public static Validation.Level getValidationLevel() {
 		Validation.Level l;

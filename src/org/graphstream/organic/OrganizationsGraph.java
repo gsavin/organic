@@ -28,6 +28,7 @@ package org.graphstream.organic;
 import java.util.HashSet;
 
 import org.graphstream.graph.Edge;
+import org.graphstream.graph.Element;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.AdjacencyListGraph;
@@ -98,8 +99,9 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 		Node n = addNode(metaOrganizationIndex.toString());
 		n.addAttribute("meta.index", metaIndex);
 		n.addAttribute("meta.root", rootNodeId);
-		n.addAttribute("ui.style", "fill-color: "
-				+ manager.getOrganization(metaOrganizationIndex).color + ";");
+		
+		GraphToElementAttribute g2ea = new GraphToElementAttribute(n);
+		manager.getOrganization(metaOrganizationIndex).addAttributeSink(g2ea);
 	}
 
 	public void organizationMerged(Object metaIndex,
@@ -176,5 +178,28 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 			return String.format("('%s';'%s')", nid1, nid2);
 
 		return String.format("('%s';'%s')", nid2, nid1);
+	}
+	
+	static class GraphToElementAttribute extends SinkAdapter {
+		Element e;
+
+		public GraphToElementAttribute(Element e) {
+			this.e = e;
+		}
+		
+		public void graphAttributeAdded(String sourceId, long timeId,
+				String attribute, Object value) {
+			e.addAttribute(attribute, value);
+		}
+
+		public void graphAttributeChanged(String sourceId, long timeId,
+				String attribute, Object oldValue, Object newValue) {
+			e.setAttribute(attribute, newValue);
+		}
+
+		public void graphAttributeRemoved(String sourceId, long timeId,
+				String attribute) {
+			e.removeAttribute(attribute);
+		}
 	}
 }

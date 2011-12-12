@@ -23,147 +23,64 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C and LGPL licenses and that you accept their terms.
  */
-package org.graphstream.organic;
+package org.graphstream.organic.test;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.swing.BorderFactory;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-
-import org.graphstream.graph.Graph;
-import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.AdjacencyListGraph;
-import org.graphstream.organic.ui.OrganizationsView;
+import org.graphstream.organic.OrganizationListener;
+import org.graphstream.organic.OrganizationsGraph;
+import org.graphstream.organic.OrganizationListener.ChangeType;
+import org.graphstream.organic.OrganizationListener.ElementType;
+import org.graphstream.stream.ElementSink;
 import org.graphstream.stream.file.FileSinkImages;
 import org.graphstream.stream.file.FileSourceDGS;
 import org.graphstream.stream.file.FileSinkImages.LayoutPolicy;
 import org.graphstream.stream.file.FileSinkImages.OutputPolicy;
 import org.graphstream.stream.file.FileSinkImages.Quality;
 import org.graphstream.stream.file.FileSinkImages.Resolutions;
-import org.graphstream.ui.swingViewer.Viewer;
 
-public class Test implements OrganizationListener {
-	public static Node randomNode(Graph graph) {
-		return randomNode(graph, new Random());
-	}
+public class HeavyTest implements OrganizationListener, ElementSink {
 
-	/**
-	 * Choose a node at random.
-	 * 
-	 * @param random
-	 *            The random number generator to use.
-	 * @return A node chosen at random, null if the graph is empty.
-	 * @complexity O(1).
-	 */
-	public static Node randomNode(Graph graph, Random random) {
-		int n = graph.getNodeCount();
-
-		if (n > 0) {
-			return graph.getNode(random.nextInt(n));
-//			int r = random.nextInt(n);
-//			int i = 0;
-//
-//			for (Node node : graph) {
-//				if (r == i)
-//					return node;
-//				i++;
-//			}
-		}
-
-		return null;
-	}
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) throws Exception {
-		//Thread.sleep(10000);
-		//System.setProperty("gs.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
 		System.setProperty("org.graphstream.organization.validation", "none");
 		
 		FileSourceDGS dgs = new FileSourceDGS();
 		AdjacencyListGraph g = new AdjacencyListGraph("g");
 		OrganizationsGraph metaGraph = new OrganizationsGraph(g);
 
+		FileSinkImages images1 = new FileSinkImages();
+		images1.setQuality(Quality.HIGH);
+		images1.setOutputPolicy(OutputPolicy.BY_STEP);
 
+		FileSinkImages images2 = new FileSinkImages();
+		images2.setResolution(Resolutions.VGA);
+		images2.setQuality(Quality.HIGH);
+		images2.setOutputPolicy(OutputPolicy.BY_STEP);
+		images2.setLayoutPolicy(LayoutPolicy.COMPUTED_AT_NEW_IMAGE);
+		images2.setLayoutStepPerFrame(5);
+
+		g.addSink(images1);
+		metaGraph.addSink(images2);
+
+		images1.begin("entities_");
+		images2.begin("meta_");
+		
 		metaGraph.getManager().setMetaIndexAttribute("meta.index");
-		// metaGraph.getManager().addOrganizationListener(new Test());
+		//metaGraph.getManager().addOrganizationListener(new HeavyTest());
 
-
+		//dgs.addElementSink(new HeavyTest());
 		dgs.addSink(g);
-		dgs.readAll(Test.class.getResourceAsStream("test.dgs"));
-		//dgs.begin(Test.class.getResourceAsStream("BoidsMovie+antco2.dgs"));
+		dgs.begin(Test.class.getResourceAsStream("BoidsMovie+antco2.dgs"));
+
+		//g.display(false);
+		//metaGraph.display();
 		
-		// g.display(false);
-		// metaGraph.display();
-		//complexDisplay(g, metaGraph, metaGraph.getNodeOrganization(randomNode(g).getId()));
-		OrganizationsView ui = new OrganizationsView(metaGraph);
-		ui.enableHQ();
-		ui.getMetaViewer().enableAutoLayout();
-		ui.enableEntitiesLayout();
-		ui.createFrame().repaint();
+		int step = 0;
+
+		while (dgs.nextStep())
+			System.out.printf("step #%d\n", step++);
 		
-		//while(dgs.nextEvents())
-		//	ui.pumpEvents();
-		
-		ui.pumpLoop(new AtomicBoolean(true), 250);
-	}
-
-	protected static void complexDisplay(Graph g1, Graph g2, Graph g3) {
-		Viewer v1, v2, v3;
-		JFrame f1;
-
-		v1 = new Viewer(g1, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
-		v2 = new Viewer(g2, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
-		v3 = new Viewer(g3, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
-		// v2 = metaGraph.display();
-		// v3 = metaGraph.getNodeOrganization("A1").display();
-
-		v1.addDefaultView(false);
-		v1.getDefaultView().setPreferredSize(new Dimension(400, 400));
-		v2.addDefaultView(false);
-		v2.getDefaultView().setPreferredSize(new Dimension(200, 200));
-		v3.addDefaultView(false);
-		v3.getDefaultView().setPreferredSize(new Dimension(200, 200));
-
-		v1.enableAutoLayout();
-		v2.enableAutoLayout();
-		v3.enableAutoLayout();
-
-		f1 = new JFrame("Organization");
-		f1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		f1.getContentPane().setLayout(new BorderLayout());
-
-		JPanel dv1, dv2, dv3;
-		dv1 = new JPanel();
-		dv1.add(v1.getDefaultView());
-		dv1.setBackground(Color.WHITE);
-		dv2 = new JPanel();
-		dv2.add(v2.getDefaultView());
-		dv2.setBackground(Color.WHITE);
-		dv3 = new JPanel();
-		dv3.add(v3.getDefaultView());
-		dv3.setBackground(Color.WHITE);
-
-		JPanel right = new JPanel();
-		right.setLayout(new GridLayout(2, 1));
-		right.add(dv2);
-		right.add(dv3);
-
-		dv1.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-		dv2.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-		dv3.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-
-		f1.getContentPane().add(dv1, BorderLayout.CENTER);
-		f1.getContentPane().add(right, BorderLayout.EAST);
-
-		f1.pack();
-		f1.setVisible(true);
+		images1.end();
+		images2.end();
 	}
 
 	public void connectionCreated(Object metaIndex1,
@@ -185,7 +102,7 @@ public class Test implements OrganizationListener {
 	public void organizationChanged(Object metaIndex,
 			Object metaOrganizationIndex, ChangeType changeType,
 			ElementType elementType, String elementId) {
-		System.out.printf("* organization [%s|%s] changed : %s, %s, %s\n",
+		System.out.printf("# organization [%s|%s] changed : %s, %s, %s\n",
 				metaIndex, metaOrganizationIndex, changeType, elementType,
 				elementId);
 	}
@@ -221,5 +138,32 @@ public class Test implements OrganizationListener {
 			Object metaOrganizationBase, Object metaOrganizationChild) {
 		System.out.printf("* organization [%s|%s] splited, child is %s\n",
 				metaIndex, metaOrganizationBase, metaOrganizationChild);
+	}
+
+	public void edgeAdded(String sourceId, long timeId, String edgeId,
+			String fromNodeId, String toNodeId, boolean directed) {
+		System.out.printf("~ EDGE ADDED '%s' '%s' -- '%s'\n", edgeId,
+				fromNodeId, toNodeId);
+	}
+
+	public void edgeRemoved(String sourceId, long timeId, String edgeId) {
+		System.out.printf("~ EDGE REMOVED '%s'\n", edgeId);
+	}
+
+	public void graphCleared(String sourceId, long timeId) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void nodeAdded(String sourceId, long timeId, String nodeId) {
+		System.out.printf("~ NODE ADDED '%s'\n", nodeId);
+	}
+
+	public void nodeRemoved(String sourceId, long timeId, String nodeId) {
+		System.out.printf("~ NODE REMOVED '%s'\n", nodeId);
+	}
+
+	public void stepBegins(String sourceId, long timeId, double step) {
+		System.out.printf("~ STEP BEGINS %f\n", step);
 	}
 }

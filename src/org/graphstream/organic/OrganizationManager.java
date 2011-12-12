@@ -25,25 +25,93 @@
  */
 package org.graphstream.organic;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+
 import org.graphstream.graph.Element;
 import org.graphstream.graph.Graph;
+import org.graphstream.stream.SinkAdapter;
 
-public interface OrganizationManager extends Iterable<Organization> {
-	void init(Graph g);
+public abstract class OrganizationManager extends SinkAdapter implements
+		Iterable<Organization> {
 
-	String getMetaIndexAttribute();
+	protected Graph entitiesGraph;
 
-	String getMetaOrganizationIndexAttribute();
+	protected String metaIndexAttribute = "meta.index";
+	protected String metaOrganizationIndexAttribute = "meta.organization.index";
 
-	void setMetaIndexAttribute(String key);
+	protected final HashMap<Object, Organization> organizations;
 
-	void setMetaOrganizationIndexAttribute(String key);
+	protected final LinkedList<OrganizationListener> listeners;
 
-	Organization getOrganization(Object id);
+	protected final Validator validator;
 
-	void addOrganizationListener(OrganizationListener l);
+	protected final LinkedList<Plugin> plugins;
 
-	void removeOrganizationListener(OrganizationListener l);
-	
-	boolean isAvailable(Element e);
+	protected OrganizationManager() {
+		organizations = new HashMap<Object, Organization>();
+		listeners = new LinkedList<OrganizationListener>();
+		plugins = new LinkedList<Plugin>();
+		validator = Validation.getValidator(this);
+
+		System.out.printf("Validation level is set to '%s'\n", Validation
+				.getValidationLevel().name().toLowerCase());
+	}
+
+	public void enablePlugin(Plugin plugin) {
+		if (plugins.contains(plugin))
+			return;
+
+		plugin.init(this);
+		plugins.add(plugin);
+	}
+
+	public Iterator<Organization> iterator() {
+		return organizations.values().iterator();
+	}
+
+	public void init(Graph g) {
+		if (entitiesGraph != null)
+			entitiesGraph.removeSink(this);
+
+		entitiesGraph = g;
+		entitiesGraph.addSink(this);
+	}
+
+	public Graph getEntitiesGraph() {
+		return entitiesGraph;
+	}
+
+	public String getMetaIndexAttribute() {
+		return metaIndexAttribute;
+	}
+
+	public String getMetaOrganizationIndexAttribute() {
+		return metaOrganizationIndexAttribute;
+	}
+
+	public void setMetaIndexAttribute(String key) {
+		this.metaIndexAttribute = key;
+	}
+
+	public void setMetaOrganizationIndexAttribute(String key) {
+		this.metaOrganizationIndexAttribute = key;
+	}
+
+	public Organization getOrganization(Object id) {
+		return organizations.get(id);
+	}
+
+	public void addOrganizationListener(OrganizationListener l) {
+		listeners.add(l);
+	}
+
+	public void removeOrganizationListener(OrganizationListener l) {
+		listeners.remove(l);
+	}
+
+	public boolean isAvailable(Element e) {
+		return true;
+	}
 }

@@ -140,7 +140,7 @@ public class OrganizationsView extends JPanel implements OrganizationListener,
 		entitiesViewer.enableAutoLayout(box);
 		box.addAttributeSink(metaGraph.getEntitiesGraph());
 	}
-	
+
 	public void pumpEvents() {
 		metaPipe.pump();
 	}
@@ -193,8 +193,13 @@ public class OrganizationsView extends JPanel implements OrganizationListener,
 
 	public void organizationRemoved(Object metaIndex,
 			Object metaOrganizationIndex) {
-		// TODO Auto-generated method stub
-
+		if (metaOrganizationIndex.equals(organizationViewedId)) {
+			if (organizationViewer != null) {
+				organizationViewerPanel.remove(organizationViewer
+						.getDefaultView());
+				organizationViewer.close();
+			}
+		}
 	}
 
 	public void organizationRootNodeUpdated(Object metaIndex,
@@ -219,7 +224,8 @@ public class OrganizationsView extends JPanel implements OrganizationListener,
 				throw new NullPointerException(id);
 
 			if (organizationViewer != null) {
-				organizationViewerPanel.remove(organizationViewer.getDefaultView());
+				organizationViewerPanel.remove(organizationViewer
+						.getDefaultView());
 				organizationViewer.close();
 			}
 

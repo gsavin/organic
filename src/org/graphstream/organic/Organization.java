@@ -26,9 +26,7 @@
 package org.graphstream.organic;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedList;
-import java.util.Random;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
@@ -48,56 +46,14 @@ import org.graphstream.organic.Validation.Level;
  */
 public class Organization extends SubGraph implements IncludeCondition,
 		Validable {
-
-	static class ColorProvider {
-
-		int r, g, b;
-		int p;
-		Random rand;
-
-		public ColorProvider() {
-			rand = new Random();
-
-			r = rand.nextInt(256);
-			g = rand.nextInt(256);
-			b = rand.nextInt(256);
-
-			p = rand.nextInt(3);
-		}
-
-		public String getNewColor() {
-			String c = String.format("#%02X%02X%02X", r, g, b);
-
-			int delta = 70 + rand.nextInt(10);
-
-			switch (p) {
-			case 0:
-				r = (r + delta) % 256;
-				break;
-			case 1:
-				g = (g + delta) % 256;
-				break;
-			case 2:
-				b = (b + delta) % 256;
-				break;
-			}
-
-			p = rand.nextInt(3);
-
-			return c;
-		}
-	}
-
-	protected static final ColorProvider cp = new ColorProvider();
-
-	protected String color = cp.getNewColor();
-
 	protected Object metaIndex;
 	protected Object metaOrganizationIndex;
 
 	protected Node organizationRoot;
 
 	protected DefaultOrganizationManager manager;
+	
+	private boolean initialized;
 
 	public Organization(DefaultOrganizationManager manager, Object metaIndex,
 			Object metaOrganizationIndex, Graph fullGraph, Node root) {
@@ -112,18 +68,26 @@ public class Organization extends SubGraph implements IncludeCondition,
 		this.manager = manager;
 		this.condition = this;
 		this.organizationRoot = root;
+		this.initialized = false;
+	}
 
-		if (root.hasAttribute(manager.metaIndexAttribute)
-				&& !metaIndex.equals(root
+	public synchronized void init() {
+		LinkedList<Node> toVisit = new LinkedList<Node>();
+
+		if (initialized)
+			throw new RuntimeException("already initialized organization");
+
+		if (organizationRoot.hasAttribute(manager.metaIndexAttribute)
+				&& !metaIndex.equals(organizationRoot
 						.getAttribute(manager.metaIndexAttribute)))
 			throw new Error("meta index of organization ("
 					+ metaOrganizationIndex + "@" + metaIndex
-					+ ") differ from meta index of root node \"" + root.getId()
-					+ "\" (" + root.getAttribute(manager.metaIndexAttribute)
+					+ ") differ from meta index of root node \""
+					+ organizationRoot.getId() + "\" ("
+					+ organizationRoot.getAttribute(manager.metaIndexAttribute)
 					+ ")");
 
-		LinkedList<Node> toVisit = new LinkedList<Node>();
-		toVisit.add(root);
+		toVisit.add(organizationRoot);
 
 		while (toVisit.size() > 0) {
 			Node n = toVisit.poll();
@@ -133,7 +97,7 @@ public class Organization extends SubGraph implements IncludeCondition,
 			for (Edge e : n.getEdgeSet()) {
 				if (!manager.isAvailable(e))
 					continue;
-				
+
 				Node o = e.getOpposite(n);
 
 				if (!nodes.contains(o.getId())
@@ -154,17 +118,8 @@ public class Organization extends SubGraph implements IncludeCondition,
 				}
 			}
 		}
-	}
-
-	public Organization(DefaultOrganizationManager manager, Object metaIndex,
-			Object metaOrganizationIndex, Graph fullGraph, Node root,
-			Collection<String> members) {
-		this(manager, metaIndex, metaOrganizationIndex, fullGraph, root);
-
-		for (String nodeId : members) {
-			Node n = fullGraph.getNode(nodeId);
-			include(n);
-		}
+		
+		initialized = true;
 	}
 
 	public boolean isInside(Element e) {
@@ -206,7 +161,8 @@ public class Organization extends SubGraph implements IncludeCondition,
 		} else {
 			e.setAttribute(manager.metaOrganizationIndexAttribute,
 					metaOrganizationIndex);
-			e.setAttribute("ui.style", String.format("fill-color: %s;", color));
+			// e.setAttribute("ui.style", String.format("fill-color: %s;",
+			// color));
 
 			super.include(e);
 			// printContent();
@@ -452,8 +408,8 @@ public class Organization extends SubGraph implements IncludeCondition,
 	public static class AloneOrganization extends Organization {
 
 		public AloneOrganization(Object metaIndex,
-				Object metaOrganizationIndex, Graph fullGraph, Node root) {
-			super(null, metaIndex, metaOrganizationIndex, fullGraph, root);
+				Object metaOrganizationIndex, Graph fullGraph) {
+			super(null, metaIndex, metaOrganizationIndex, fullGraph, null);
 		}
 
 		public void check() {
