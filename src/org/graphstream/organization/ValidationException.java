@@ -2,7 +2,7 @@
  * Copyright 2011 - 2012
  *     Guilhelm Savin	<guilhelm.savin@graphstream-project.org>
  * 
- * This file is part of Organizations, a feature for GraphStream to manipulate
+ * This file is part of organic, a feature for GraphStream to manipulate
  * organizations in a dynamic graph.
  * 
  * This program is free software distributed under the terms of two licenses, the

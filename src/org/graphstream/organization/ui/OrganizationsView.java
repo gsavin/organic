@@ -23,10 +23,14 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C and LGPL licenses and that you accept their terms.
  */
-package org.graphstream.organization;
+package org.graphstream.organization.ui;
 
-import org.graphstream.organization.Validation.Level;
+import javax.swing.JPanel;
 
-public interface Validable {
-	void validate(Level level) throws ValidationException;
+public class OrganizationsView extends JPanel {
+	/*
+	 * @see java.io.Serializable
+	 */
+	private static final long serialVersionUID = 2470594044826918271L;
+
 }
