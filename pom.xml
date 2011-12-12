@@ -124,7 +124,7 @@
 					<source>1.5</source>
 					<target>1.5</target>
 					<excludes>
-						<exclude>org/graphstream/organization/TestAntCo2Organization.java</exclude>
+						<exclude>org/graphstream/organic/demo/AntCo2Organization.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
