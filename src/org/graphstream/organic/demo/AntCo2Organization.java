@@ -23,7 +23,7 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C and LGPL licenses and that you accept their terms.
  */
-package org.graphstream.organic.test;
+package org.graphstream.organic.demo;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -43,7 +43,7 @@ import org.graphstream.stream.file.FileSourceDGS;
 import org.graphstream.ui.swingViewer.Viewer;
 import static org.graphstream.algorithm.Parameter.parameter;
 
-public class TestAntCo2Organization implements OrganizationListener {
+public class AntCo2Organization implements OrganizationListener {
 
 	public static void main(String... args) {
 		System.setProperty("gs.ui.renderer",
@@ -52,7 +52,7 @@ public class TestAntCo2Organization implements OrganizationListener {
 		FileSourceDGS dgs = new FileSourceDGS();
 		// Generator gen = new GridGenerator();
 		Graph g = new DefaultGraph("test",false,true);
-		TestAntCo2Organization test = new TestAntCo2Organization(g);
+		AntCo2Organization test = new AntCo2Organization(g);
 
 		g.display(false);
 		String stylesheet = "graph { " + "  fill-color: #333333;"
@@ -118,7 +118,7 @@ public class TestAntCo2Organization implements OrganizationListener {
 
 	Measures measures;
 
-	public TestAntCo2Organization(Graph g) {
+	public AntCo2Organization(Graph g) {
 		centroids = new HashMap<Object, AntCentroidAlgorithm>();
 		viewers = new HashMap<Object, Viewer>();
 		antco2 = new AntCo2Algorithm();

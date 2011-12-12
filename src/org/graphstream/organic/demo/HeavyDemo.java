@@ -23,77 +23,64 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C and LGPL licenses and that you accept their terms.
  */
-package org.graphstream.organic.test;
-
-import java.util.concurrent.atomic.AtomicBoolean;
+package org.graphstream.organic.demo;
 
 import org.graphstream.graph.implementations.AdjacencyListGraph;
 import org.graphstream.organic.OrganizationListener;
 import org.graphstream.organic.OrganizationsGraph;
-import org.graphstream.organic.Validation;
 import org.graphstream.organic.OrganizationListener.ChangeType;
 import org.graphstream.organic.OrganizationListener.ElementType;
-import org.graphstream.organic.plugins.Colorize;
-import org.graphstream.organic.plugins.replay.Replayable;
-import org.graphstream.organic.ui.OrganizationsView;
-import org.graphstream.stream.file.FileSinkDGS;
+import org.graphstream.stream.ElementSink;
+import org.graphstream.stream.file.FileSinkImages;
 import org.graphstream.stream.file.FileSourceDGS;
-import org.graphstream.util.VerboseSink;
+import org.graphstream.stream.file.FileSinkImages.LayoutPolicy;
+import org.graphstream.stream.file.FileSinkImages.OutputPolicy;
+import org.graphstream.stream.file.FileSinkImages.Quality;
+import org.graphstream.stream.file.FileSinkImages.Resolutions;
 
-public class Test implements OrganizationListener {
-	/**
-	 * @param args
-	 */
+public class HeavyDemo implements OrganizationListener, ElementSink {
+
 	public static void main(String[] args) throws Exception {
-		// Thread.sleep(10000);
-		// System.setProperty("gs.ui.renderer",
-		// "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
-		System.setProperty(Validation.PROPERTY, "none");
-
+		System.setProperty("org.graphstream.organization.validation", "none");
+		
 		FileSourceDGS dgs = new FileSourceDGS();
 		AdjacencyListGraph g = new AdjacencyListGraph("g");
 		OrganizationsGraph metaGraph = new OrganizationsGraph(g);
 
-		metaGraph.getManager().enablePlugin(new Colorize());
-		metaGraph.getManager().enablePlugin(new Replayable());
+		FileSinkImages images1 = new FileSinkImages();
+		images1.setQuality(Quality.HIGH);
+		images1.setOutputPolicy(OutputPolicy.BY_STEP);
+
+		FileSinkImages images2 = new FileSinkImages();
+		images2.setResolution(Resolutions.VGA);
+		images2.setQuality(Quality.HIGH);
+		images2.setOutputPolicy(OutputPolicy.BY_STEP);
+		images2.setLayoutPolicy(LayoutPolicy.COMPUTED_AT_NEW_IMAGE);
+		images2.setLayoutStepPerFrame(5);
+
+		g.addSink(images1);
+		metaGraph.addSink(images2);
+
+		images1.begin("entities_");
+		images2.begin("meta_");
+		
 		metaGraph.getManager().setMetaIndexAttribute("meta.index");
-		// metaGraph.getManager().addOrganizationListener(new Test());
+		//metaGraph.getManager().addOrganizationListener(new HeavyTest());
 
-		// g.addSink(new VerboseSink());
-		FileSinkDGS dgsOut = new FileSinkDGS();
-		g.addSink(dgsOut);
+		//dgs.addElementSink(new HeavyTest());
 		dgs.addSink(g);
+		dgs.begin(Demo.class.getResourceAsStream("BoidsMovie+antco2.dgs"));
 
-		OrganizationsView ui = new OrganizationsView(metaGraph);
-		// ui.enableHQ();
-		ui.getMetaViewer().enableAutoLayout();
-		ui.createFrame().repaint();
+		//g.display(false);
+		//metaGraph.display();
+		
+		int step = 0;
 
-		dgsOut.begin("replayable.dgs");
-
-		// test(dgs, ui);
-		boids(dgs, ui);
-
-		dgsOut.end();
-	}
-
-	public static void test(FileSourceDGS dgs, OrganizationsView ui)
-			throws Exception {
-		// ui.enableEntitiesLayout();
-		dgs.readAll(Test.class.getResourceAsStream("test.dgs"));
-
-		ui.pumpLoop(new AtomicBoolean(true), 250);
-	}
-
-	public static void boids(FileSourceDGS dgs, OrganizationsView ui)
-			throws Exception {
-		dgs.begin(Test.class.getResourceAsStream("BoidsMovie+antco2.dgs"));
-
-		while (dgs.nextEvents())
-			ui.pumpEvents();
-
-		dgs.end();
-		ui.pumpLoop(new AtomicBoolean(true), 250);
+		while (dgs.nextStep())
+			System.out.printf("step #%d\n", step++);
+		
+		images1.end();
+		images2.end();
 	}
 
 	public void connectionCreated(Object metaIndex1,
@@ -115,7 +102,7 @@ public class Test implements OrganizationListener {
 	public void organizationChanged(Object metaIndex,
 			Object metaOrganizationIndex, ChangeType changeType,
 			ElementType elementType, String elementId) {
-		System.out.printf("* organization [%s|%s] changed : %s, %s, %s\n",
+		System.out.printf("# organization [%s|%s] changed : %s, %s, %s\n",
 				metaIndex, metaOrganizationIndex, changeType, elementType,
 				elementId);
 	}
@@ -151,5 +138,32 @@ public class Test implements OrganizationListener {
 			Object metaOrganizationBase, Object metaOrganizationChild) {
 		System.out.printf("* organization [%s|%s] splited, child is %s\n",
 				metaIndex, metaOrganizationBase, metaOrganizationChild);
+	}
+
+	public void edgeAdded(String sourceId, long timeId, String edgeId,
+			String fromNodeId, String toNodeId, boolean directed) {
+		System.out.printf("~ EDGE ADDED '%s' '%s' -- '%s'\n", edgeId,
+				fromNodeId, toNodeId);
+	}
+
+	public void edgeRemoved(String sourceId, long timeId, String edgeId) {
+		System.out.printf("~ EDGE REMOVED '%s'\n", edgeId);
+	}
+
+	public void graphCleared(String sourceId, long timeId) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void nodeAdded(String sourceId, long timeId, String nodeId) {
+		System.out.printf("~ NODE ADDED '%s'\n", nodeId);
+	}
+
+	public void nodeRemoved(String sourceId, long timeId, String nodeId) {
+		System.out.printf("~ NODE REMOVED '%s'\n", nodeId);
+	}
+
+	public void stepBegins(String sourceId, long timeId, double step) {
+		System.out.printf("~ STEP BEGINS %f\n", step);
 	}
 }

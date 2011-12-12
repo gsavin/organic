@@ -23,7 +23,7 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C and LGPL licenses and that you accept their terms.
  */
-package org.graphstream.organic.test;
+package org.graphstream.organic.demo;
 
 import org.graphstream.graph.implementations.AdjacencyListGraph;
 import org.graphstream.organic.OrganizationsGraph;
@@ -54,7 +54,7 @@ public class MakeReplay {
 		dgs.addSink(g);
 
 		dgsOut.begin("replayable.dgs");
-		dgs.begin(Test.class.getResourceAsStream("BoidsMovie+antco2.dgs"));
+		dgs.begin(Demo.class.getResourceAsStream("BoidsMovie+antco2.dgs"));
 
 		while (dgs.nextEvents());
 
