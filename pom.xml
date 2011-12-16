@@ -197,7 +197,7 @@
 		<dependency>
 			<groupId>org.graphstream</groupId>
 			<artifactId>gs-core</artifactId>
-			<version>1.x-git</version>
+			<version>1.2-git</version>
 			<optional>false</optional>
 		</dependency>
 		<dependency>
@@ -205,6 +205,12 @@
 			<artifactId>gs-subgraph</artifactId>
 			<version>0.x-git</version>
 			<optional>false</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.graphstream</groupId>
+			<artifactId>gs-ui</artifactId>
+			<version>1.x-git</version>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 </project>

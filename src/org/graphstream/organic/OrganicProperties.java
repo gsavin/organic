@@ -25,33 +25,32 @@
  */
 package org.graphstream.organic;
 
-public class OrganizationManagerFactory {
-	public static final String PROPERTY = OrganicProperties.PREFIX + ".manager";
+import java.io.IOException;
+import java.util.InvalidPropertiesFormatException;
+import java.util.Properties;
 
-	@SuppressWarnings("unchecked")
-	public static OrganizationManager newOrganizationManager() {
-		String type = System.getProperty(PROPERTY);
+public class OrganicProperties extends Properties {
+	private static final long serialVersionUID = -1598036766326339078L;
 
-		if (type == null)
-			return new DefaultOrganizationManager();
+	public static final String PREFIX = "org.graphstream.organic";
+	public static final String PROPERTY = PREFIX + ".config";
 
-		Class<? extends OrganizationManager> clazz;
+	public OrganicProperties() {
+		super();
 
-		try {
-			clazz = (Class<? extends OrganizationManager>) Class.forName(type);
-		} catch (ClassNotFoundException e) {
-			try {
-				clazz = (Class<? extends OrganizationManager>) Class
-						.forName("org.graphstream.organic." + type);
-			} catch (ClassNotFoundException e1) {
-				throw new RuntimeException(e1);
-			}
+		for (String key : System.getProperties().stringPropertyNames()) {
+			if (key.startsWith(PREFIX))
+				setProperty(key, System.getProperty(key));
 		}
-
-		try {
-			return clazz.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+		
+		if (getProperty(PROPERTY) != null) {
+			try {
+				loadFromXML(getClass().getClassLoader().getResourceAsStream(getProperty(PROPERTY)));
+			} catch (InvalidPropertiesFormatException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }

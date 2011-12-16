@@ -25,9 +25,9 @@
  */
 package org.graphstream.organic;
 
-
 public class Validation {
-	public static final String PROPERTY = "org.graphstream.organic.validation";
+	public static final String PROPERTY = OrganicProperties.PREFIX
+			+ ".validation";
 
 	public static Validation.Level getValidationLevel() {
 		Validation.Level l;
@@ -69,7 +69,7 @@ public class Validation {
 			// Nothing because it is passive.
 		}
 	}
-	
+
 	static class DefaultValidator extends Validator {
 		OrganizationManager manager;
 		Level level;

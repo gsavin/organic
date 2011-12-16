@@ -27,6 +27,7 @@ package org.graphstream.organic.demo;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.graphstream.algorithm.measure.MaxSimultaneousNodeCount;
 import org.graphstream.graph.implementations.AdjacencyListGraph;
 import org.graphstream.organic.OrganizationListener;
 import org.graphstream.organic.OrganizationsGraph;
@@ -54,27 +55,36 @@ public class Demo implements OrganizationListener {
 		AdjacencyListGraph g = new AdjacencyListGraph("g");
 		OrganizationsGraph metaGraph = new OrganizationsGraph(g);
 
-		metaGraph.getManager().enablePlugin(new Colorize());
-		metaGraph.getManager().enablePlugin(new Replayable());
+		Colorize c = new Colorize();
+		c.loadPatternFromStream(MakeReplay.class.getResourceAsStream("colors"));
+		
+		metaGraph.getManager().enablePlugin(c);
 		metaGraph.getManager().setMetaIndexAttribute("meta.index");
+		
+		MaxSimultaneousNodeCount nCount1 = new MaxSimultaneousNodeCount();
+		MaxSimultaneousNodeCount nCount2 = new MaxSimultaneousNodeCount();
+		
+		g.addSink(nCount1);
+		metaGraph.addSink(nCount2);
 		// metaGraph.getManager().addOrganizationListener(new Test());
 
 		// g.addSink(new VerboseSink());
-		FileSinkDGS dgsOut = new FileSinkDGS();
-		g.addSink(dgsOut);
 		dgs.addSink(g);
 
 		OrganizationsView ui = new OrganizationsView(metaGraph);
 		// ui.enableHQ();
-		ui.getMetaViewer().enableAutoLayout();
-		ui.createFrame().repaint();
+		//ui.getMetaViewer().enableAutoLayout();
+		//ui.createFrame().repaint();
 
-		dgsOut.begin("replayable.dgs");
+		//dgsOut.begin("replayable.dgs");
 
-		// test(dgs, ui);
-		boids(dgs, ui);
+		//test(dgs, ui);
+		boids(dgs, null);
+		
+		System.out.printf("max nodes in entities graph : %d\n", nCount1.getMaxSimultaneousNodeCount());
+		System.out.printf("max nodes in meta graph     : %d\n", nCount2.getMaxSimultaneousNodeCount());
 
-		dgsOut.end();
+		//dgsOut.end();
 	}
 
 	public static void test(FileSourceDGS dgs, OrganizationsView ui)
@@ -89,11 +99,12 @@ public class Demo implements OrganizationListener {
 			throws Exception {
 		dgs.begin(Demo.class.getResourceAsStream("BoidsMovie+antco2.dgs"));
 
-		while (dgs.nextEvents())
-			ui.pumpEvents();
+		int step = 0;
+		while (dgs.nextStep()) System.out.printf("step #%d\n", step++);
+		//	ui.pumpEvents();
 
 		dgs.end();
-		ui.pumpLoop(new AtomicBoolean(true), 250);
+		//ui.pumpLoop(new AtomicBoolean(true), 250);
 	}
 
 	public void connectionCreated(Object metaIndex1,

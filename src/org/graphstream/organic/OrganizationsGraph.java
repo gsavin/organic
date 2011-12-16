@@ -49,19 +49,12 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 	OrganizationManager manager;
 
 	public OrganizationsGraph(Graph g) {
-		this(g, null);
-	}
-
-	public OrganizationsGraph(Graph g, OrganizationManagerFactory factory) {
 		super(g.getId() + "-meta");
 
 		entitiesGraph = g;
 		entitiesGraph.addElementSink(new StepForwarding());
 
-		if (factory != null)
-			manager = factory.newOrganizationManager();
-		else
-			manager = new DefaultOrganizationManager();
+		manager = OrganizationManagerFactory.newOrganizationManager();
 
 		manager.init(g);
 		manager.addOrganizationListener(this);

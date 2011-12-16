@@ -1,0 +1,100 @@
+DGS004
+org 0 0
+
+st 0
+
+an A1 meta.index="A"
+an A2 meta.index="A"
+an A3 meta.index="A"
+
+ae A12 A1 A2
+ae A13 A1 A3
+ae A23 A2 A3
+
+an B1 meta.index="B"
+an B2 meta.index="B"
+an B3 meta.index="B"
+
+ae B12 B1 B2
+ae B13 B1 B3
+ae B23 B2 B3
+
+an C1 meta.index="C"
+an C2 meta.index="C"
+an C3 meta.index="C"
+
+ae C12 C1 C2
+ae C13 C1 C3
+ae C23 C2 C3
+
+an D1 meta.index="D"
+an D2 meta.index="D"
+an D3 meta.index="D"
+
+ae D12 D1 D2
+ae D13 D1 D3
+ae D23 D2 D3
+
+ae AD A1 D1
+ae BD B1 D2
+ae CD C1 D3
+
+cn "A1" "xyz":{2.217886,-0.612277,0.000000}
+cn "A2" "xyz":{-1.266662,-1.662378,0.000000}
+cn "A3" "xyz":{-2.018702,1.020820,0.000000}
+cn "B1" "xyz":{0.170513,-1.945374,0.000000}
+cn "B2" "xyz":{-0.078961,-2.272637,0.000000}
+cn "B3" "xyz":{0.648790,2.006026,0.000000}
+cn "C1" "xyz":{2.270304,1.095948,0.000000}
+cn "C2" "xyz":{0.365499,-1.529793,0.000000}
+cn "C3" "xyz":{1.954671,1.360560,0.000000}
+cn "D1" "xyz":{-1.886248,1.047465,0.000000}
+cn "D2" "xyz":{1.799441,1.199077,0.000000}
+cn "D3" "xyz":{-2.108030,-1.174374,0.000000}
+
+st 1
+
+cg "organic.event.organizationCreated":{"A","001","A1"}
+
+cn "A1" "meta.organization.index":"001"
+cn "A2" "meta.organization.index":"001"
+cn "A3" "meta.organization.index":"001"
+
+cg "organic.event.organizationCreated":{"B","002","B1"}
+
+cn "B1" "meta.organization.index":"002"
+cn "B2" "meta.organization.index":"002"
+cn "B3" "meta.organization.index":"002"
+
+cg "organic.event.organizationCreated":{"C","003","C1"}
+
+cn "C1" "meta.organization.index":"003"
+cn "C2" "meta.organization.index":"003"
+cn "C3" "meta.organization.index":"003"
+
+cg "organic.event.organizationCreated":{"D","004","D1"}
+
+cn "D1" "meta.organization.index":"004"
+cn "D2" "meta.organization.index":"004"
+cn "D3" "meta.organization.index":"004"
+
+cg "organic.event.connectionCreated":{"A","001","D","004","AD"}
+cg "organic.event.connectionCreated":{"B","002","D","004","BD"}
+cg "organic.event.connectionCreated":{"C","003","D","004","CD"}
+
+st 2
+
+cg "organic.event.connectionRemoved":{"A","001","D","004","AD"}
+
+cn "A3" -"meta.organization.index"
+cn "A2" -"meta.organization.index"
+cn "A1" -"meta.organization.index"
+
+cg "organic.event.organizationRemoved":{"A","001"}
+cg "organic.event.organizationCreated":{"A","005","A1"}
+
+cn "A1" "meta.organization.index":"005"
+cn "A2" "meta.organization.index":"005"
+cn "A3" "meta.organization.index":"005"
+
+cg "organic.event.connectionCreated":{"A","005","D","004","AD"}

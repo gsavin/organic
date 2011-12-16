@@ -25,7 +25,12 @@
  */
 package org.graphstream.organic.plugins;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Random;
 
 import org.graphstream.graph.Graph;
@@ -44,19 +49,71 @@ public class Colorize implements Plugin, OrganizationListener {
 
 	HashMap<Object, String> colors;
 
+	String[] palette;
+
+	boolean usePalette;
+
+	protected long seed;
+
+	protected int palettePosition;
+
+	protected boolean paletteRandom;
+
 	public Colorize() {
+		usePalette = false;
+		paletteRandom = false;
 		rand = new Random();
+		setSeed(rand.nextLong());
+
+		colors = new HashMap<Object, String>();
+	}
+
+	public long getSeed() {
+		return seed;
+	}
+
+	public void setSeed(long s) {
+		rand = new Random(s);
+		seed = s;
 
 		r = rand.nextInt(256);
 		g = rand.nextInt(256);
 		b = rand.nextInt(256);
 
 		p = rand.nextInt(3);
+	}
 
-		colors = new HashMap<Object, String>();
+	public void setPalette(String... colors) {
+		palette = colors;
+		usePalette = true;
+		palettePosition = 0;
+	}
+
+	public void loadPatternFromStream(InputStream stream) throws IOException {
+		BufferedReader in = new BufferedReader(new InputStreamReader(stream));
+		LinkedList<String> colors = new LinkedList<String>();
+
+		while (in.ready())
+			colors.add(in.readLine());
+
+		palette = colors.toArray(new String[colors.size()]);
+		usePalette = true;
+		palettePosition = 0;
+
+		colors.clear();
 	}
 
 	public String getNewColor() {
+		if (usePalette) {
+			if (paletteRandom)
+				return palette[rand.nextInt(palette.length)];
+
+			if (palettePosition >= palette.length)
+				palettePosition = 0;
+
+			return palette[palettePosition++];
+		}
+
 		String c = String.format("#%02X%02X%02X", r, g, b);
 
 		int delta = 70 + rand.nextInt(10);
@@ -88,7 +145,7 @@ public class Colorize implements Plugin, OrganizationListener {
 			Object metaOrganizationIndex, ChangeType changeType,
 			ElementType elementType, String elementId) {
 		String color = colors.get(metaOrganizationIndex);
-		
+
 		switch (changeType) {
 		case ADD:
 			switch (elementType) {

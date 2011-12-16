@@ -51,11 +51,11 @@ public class Organization extends SubGraph implements IncludeCondition,
 
 	protected Node organizationRoot;
 
-	protected DefaultOrganizationManager manager;
-	
+	protected OrganizationManager manager;
+
 	private boolean initialized;
 
-	public Organization(DefaultOrganizationManager manager, Object metaIndex,
+	public Organization(OrganizationManager manager, Object metaIndex,
 			Object metaOrganizationIndex, Graph fullGraph, Node root) {
 		super(metaOrganizationIndex.toString(), fullGraph, Conditions.none(),
 				true);
@@ -118,8 +118,23 @@ public class Organization extends SubGraph implements IncludeCondition,
 				}
 			}
 		}
-		
+
 		initialized = true;
+	}
+
+	public void setRootNode(Node root) {
+		if (isInside(root)) {
+			organizationRoot = root;
+			manager.rootNodeUpdate(this);
+		}
+	}
+
+	public Object getMetaIndex() {
+		return metaIndex;
+	}
+
+	public Object getMetaOrganizationIndex() {
+		return metaOrganizationIndex;
 	}
 
 	public boolean isInside(Element e) {
@@ -138,16 +153,19 @@ public class Organization extends SubGraph implements IncludeCondition,
 		Object emi = e.getAttribute(manager.metaIndexAttribute);
 		Object emoi = e.getAttribute(manager.metaOrganizationIndexAttribute);
 
-		if (emi != null && !metaIndex.equals(emi))
-			throw new Error("try to include a node with bad meta index");
+		if (emi != null && !metaIndex.equals(emi) && e instanceof Node)
+			throw new Error("try to include node '" + e.getId()
+					+ "' with bad meta index '" + emi + "' ('" + metaIndex
+					+ "' expected) in '" + metaOrganizationIndex + "'");
+
+		if (emi == null)
+			e.setAttribute(manager.metaIndexAttribute, metaIndex);
 
 		if (emoi != null) {
 			if (metaOrganizationIndex.equals(emoi)) {
-				/*
-				 * System.err.printf(
-				 * "warning: include twice node \"%s\" in %s@%s%n", e.getId(),
-				 * metaOrganizationIndex, metaIndex);
-				 */
+				// System.err.printf(
+				// "warning: include twice \"%s\" in %s@%s%n", e
+				// .getId(), metaOrganizationIndex, metaIndex);
 			} else {
 				throw new Error(
 						String
@@ -209,7 +227,8 @@ public class Organization extends SubGraph implements IncludeCondition,
 					remove(edge);
 			}
 
-			if (e.getId().equals(organizationRoot.getId()))
+			if (organizationRoot == null
+					|| e.getId().equals(organizationRoot.getId()))
 				checkRootNode();
 		}
 
@@ -304,7 +323,8 @@ public class Organization extends SubGraph implements IncludeCondition,
 	}
 
 	protected void checkRootNode() {
-		if (!nodes.contains(organizationRoot.getId()))
+		if (organizationRoot != null
+				&& !nodes.contains(organizationRoot.getId()))
 			organizationRoot = null;
 
 		Node root = organizationRoot;

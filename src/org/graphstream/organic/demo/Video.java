@@ -26,46 +26,69 @@
 package org.graphstream.organic.demo;
 
 import org.graphstream.graph.implementations.AdjacencyListGraph;
+import org.graphstream.organic.OrganizationManagerFactory;
 import org.graphstream.organic.OrganizationsGraph;
 import org.graphstream.organic.Validation;
-import org.graphstream.organic.plugins.Colorize;
-import org.graphstream.organic.plugins.replay.Replayable;
-import org.graphstream.stream.file.FileSinkDGS;
+import org.graphstream.stream.file.FileSinkImages;
 import org.graphstream.stream.file.FileSourceDGS;
+import org.graphstream.stream.file.FileSinkImages.LayoutPolicy;
+import org.graphstream.stream.file.FileSinkImages.OutputPolicy;
+import org.graphstream.stream.file.FileSinkImages.Quality;
+import org.graphstream.stream.file.FileSinkImages.RendererType;
+import org.graphstream.stream.file.FileSinkImages.Resolutions;
 
-public class MakeReplay {
+public class Video {
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
+		System.setProperty(OrganizationManagerFactory.PROPERTY,
+				"plugins.replay.ReplayOrganizationManager");
 		System.setProperty(Validation.PROPERTY, "none");
 
 		FileSourceDGS dgs = new FileSourceDGS();
 		AdjacencyListGraph g = new AdjacencyListGraph("g");
 		OrganizationsGraph metaGraph = new OrganizationsGraph(g);
 
-		Colorize c = new Colorize();
-		c.loadPatternFromStream(MakeReplay.class.getResourceAsStream("colors"));
+		FileSinkImages images1 = new FileSinkImages();
+		images1.setResolution(Resolutions.HD1080);
+		images1.setRenderer(RendererType.SCALA);
+		images1.setQuality(Quality.HIGH);
+		images1.setOutputPolicy(OutputPolicy.BY_STEP);
 
-		metaGraph.getManager().enablePlugin(c);
-		metaGraph.getManager().enablePlugin(new Replayable());
-		metaGraph.getManager().setMetaIndexAttribute("meta.index");
+		FileSinkImages images2 = new FileSinkImages();
+		images2.setResolution(Resolutions.VGA);
+		images2.setRenderer(RendererType.SCALA);
+		images2.setQuality(Quality.HIGH);
+		images2.setOutputPolicy(OutputPolicy.BY_STEP);
+		images2.setLayoutPolicy(LayoutPolicy.COMPUTED_AT_NEW_IMAGE);
+		images2.setLayoutStepPerFrame(2);
+		images2.setClearImageBeforeOutputEnabled(true);
+		
+		images1
+				.setStyleSheet("graph {fill-mode:gradient-radial;fill-color:#FFFFFF,#EEEEEE;} node {size:15px;stroke-mode:plain;stroke-color:#1D1D1D;stroke-width:1px;}");
+		images2
+				.setStyleSheet("graph {fill-mode:none;} node {stroke-mode:plain;stroke-color:#1D1D1D;stroke-width:2px;} node { size: 45px; } edge { fill-color: gray; }");
 
-		FileSinkDGS dgsOut = new FileSinkDGS();
-		g.addSink(dgsOut);
+		// g.addSink(new VerboseSink(System.err));
 		dgs.addSink(g);
 
-		dgsOut.begin("replayable.dgs");
-		dgs.begin(Demo.class.getResourceAsStream("BoidsMovie+antco2.dgs"));
+		g.addSink(images1);
+		metaGraph.addSink(images2); 
+		
+		dgs.begin("replayable.dgs");
 
-		int step = 0;
+		images1.begin("entities_");
+		images2.begin("meta_");
 
 		while (dgs.nextStep())
-			System.out.printf("Step #%d\n", step++);
+			;
 
+		
+		images1.end();
+		images2.end();
 		dgs.end();
-		dgsOut.end();
 	}
 
 }

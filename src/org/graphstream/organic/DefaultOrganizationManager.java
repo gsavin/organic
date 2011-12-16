@@ -411,7 +411,7 @@ public class DefaultOrganizationManager extends OrganizationManager {
 		return org1;
 	}
 
-	void mitose(Object metaIndex, Organization base, LinkedList<String> orphans) {
+	public void mitose(Object metaIndex, Organization base, LinkedList<String> orphans) {
 		String id = idGenerator.getNewId();
 
 		for (String nodeId : orphans) {
@@ -450,12 +450,6 @@ public class DefaultOrganizationManager extends OrganizationManager {
 		validator.validate("after splitting organization '%s' of '%s' to '%s'",
 				base.metaOrganizationIndex, base.metaIndex,
 				mitose.metaOrganizationIndex);
-	}
-
-	void rootNodeUpdate(Organization org) {
-		for (OrganizationListener l : listeners)
-			l.organizationRootNodeUpdated(org.metaIndex,
-					org.metaOrganizationIndex, org.organizationRoot.getId());
 	}
 
 	private class OrganizationChangeListener implements ElementSink {

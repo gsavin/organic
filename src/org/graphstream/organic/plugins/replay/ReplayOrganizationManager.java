@@ -25,7 +25,12 @@
  */
 package org.graphstream.organic.plugins.replay;
 
+import java.util.LinkedList;
+
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Element;
 import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
 import org.graphstream.organic.Organization;
 import org.graphstream.organic.OrganizationManager;
 import org.graphstream.organic.OrganizationListener.ChangeType;
@@ -49,7 +54,7 @@ import org.graphstream.organic.OrganizationListener.ElementType;
 public class ReplayOrganizationManager extends OrganizationManager {
 
 	enum Event {
-		CONNECTIONCREATED, CONNECTIONREMOVED, ORGANIZATIONCHANGED, ORGANIZATIONCREATED, ORGANIZATIONMERGED, ORGANIZATIONREMOVED, ORGANIZATIONROOTNODEUPDATED, ORGANIZATIONSPLITED
+		CONNECTIONCREATED, CONNECTIONREMOVED, ORGANIZATIONCHANGED, ORGANIZATIONCREATED, ORGANIZATIONMERGED, ORGANIZATIONREMOVED, ORGANIZATIONROOTNODEUPDATED, ORGANIZATIONSPLITED, ORGANIZATIONATTRIBUTESET, ORGANIZATIONATTRIBUTEREMOVED
 	}
 
 	public void init(Graph g) {
@@ -78,6 +83,8 @@ public class ReplayOrganizationManager extends OrganizationManager {
 
 			Event e = Event.valueOf(key.toUpperCase());
 			Object[] args = (Object[]) value;
+			Organization org;
+			Element elt = null;
 
 			switch (e) {
 			case CONNECTIONCREATED:
@@ -93,18 +100,18 @@ public class ReplayOrganizationManager extends OrganizationManager {
 
 				break;
 			case ORGANIZATIONCHANGED:
-				ChangeType changeType = ChangeType.valueOf((String) args[2]);
-				ElementType elementType = ElementType.valueOf((String) args[3]);
-
-				for (int i = 0; i < listeners.size(); i++)
-					listeners.get(i).organizationChanged(args[0], args[1],
-							changeType, elementType, (String) args[4]);
-
+				// Ignore
 				break;
 			case ORGANIZATIONCREATED:
+				elt = entitiesGraph.getNode((String) args[2]);
+				org = new Organization(this, args[0], args[1], entitiesGraph,
+						(Node) elt);
+
+				organizations.put(args[1], org);
+
 				for (int i = 0; i < listeners.size(); i++)
 					listeners.get(i).organizationCreated(args[0], args[1],
-							(String) args[3]);
+							(String) args[2]);
 
 				break;
 			case ORGANIZATIONMERGED:
@@ -117,11 +124,12 @@ public class ReplayOrganizationManager extends OrganizationManager {
 				for (int i = 0; i < listeners.size(); i++)
 					listeners.get(i).organizationRemoved(args[0], args[1]);
 
+				organizations.remove(args[1]);
+
 				break;
 			case ORGANIZATIONROOTNODEUPDATED:
-				for (int i = 0; i < listeners.size(); i++)
-					listeners.get(i).organizationRootNodeUpdated(args[0],
-							args[1], (String) args[2]);
+				org = organizations.get(args[1]);
+				org.setRootNode(entitiesGraph.getNode((String) args[2]));
 
 				break;
 			case ORGANIZATIONSPLITED:
@@ -130,20 +138,21 @@ public class ReplayOrganizationManager extends OrganizationManager {
 							args[2]);
 
 				break;
+			case ORGANIZATIONATTRIBUTESET:
+				org = organizations.get(args[0]);
+				org.setAttribute((String) args[1], args[2]);
+				
+				break;
+			case ORGANIZATIONATTRIBUTEREMOVED:
+				org = organizations.get(args[0]);
+				org.removeAttribute((String) args[1]);
+				
+				break;
 			}
 		} else if (key.equalsIgnoreCase("metaIndexAttribute")) {
 			super.setMetaIndexAttribute((String) value);
 		} else if (key.equalsIgnoreCase("metaOrganizationIndexAttribute")) {
 			super.setMetaOrganizationIndexAttribute((String) value);
-		} else {
-			String orgId = key.substring(0, key.indexOf('.'));
-			key = key.substring(orgId.length() + 1);
-			Organization org = organizations.get(orgId);
-			
-			if (org == null)
-				throw new NullPointerException();
-			
-			
 		}
 	}
 
@@ -155,5 +164,118 @@ public class ReplayOrganizationManager extends OrganizationManager {
 	public void graphAttributeChanged(String sourceId, long timeId,
 			String attribute, Object oldValue, Object newValue) {
 		handleAttribute(attribute, newValue);
+	}
+
+	public void nodeAttributeAdded(String sourceId, long timeId, String nodeId,
+			String attribute, Object value) {
+		nodeAttributeChanged(sourceId, timeId, nodeId, attribute, null, value);
+	}
+
+	public void nodeAttributeChanged(String sourceId, long timeId,
+			String nodeId, String attribute, Object oldValue, Object newValue) {
+		if (attribute.equals(metaOrganizationIndexAttribute)) {
+			Organization org1;
+			Organization org2 = organizations.get(newValue);
+			Node n = entitiesGraph.getNode(nodeId);
+
+			if (false && oldValue != null) {
+				org1 = organizations.get(oldValue);
+
+				if (org1 != null) {
+					for (int i = 0; i < listeners.size(); i++)
+						listeners.get(i).organizationChanged(
+								org1.getMetaIndex(),
+								org1.getMetaOrganizationIndex(),
+								ChangeType.REMOVE, ElementType.NODE, nodeId);
+
+					org1.remove(n);
+				}
+			}
+
+			if (org2 == null)
+				throw new NullPointerException(String.format(
+						"node '%s' : '%s'", nodeId, newValue.toString()));
+			org2.include(n);
+
+			for (int i = 0; i < listeners.size(); i++)
+				listeners.get(i).organizationChanged(org2.getMetaIndex(),
+						org2.getMetaOrganizationIndex(), ChangeType.ADD,
+						ElementType.NODE, nodeId);
+		}
+	}
+
+	public void nodeAttributeRemoved(String sourceId, long timeId,
+			String nodeId, String attribute) {
+		if (attribute.equals(metaOrganizationIndexAttribute)) {
+			Node n = entitiesGraph.getNode(nodeId);
+			Organization org1 = organizations.get(n.getAttribute(attribute));
+
+			if (org1 == null)
+				throw new NullPointerException("'" + nodeId
+						+ "' organization not found '"
+						+ n.getAttribute(attribute) + "'");
+
+			for (int i = 0; i < listeners.size(); i++)
+				listeners.get(i).organizationChanged(org1.getMetaIndex(),
+						org1.getMetaOrganizationIndex(), ChangeType.REMOVE,
+						ElementType.NODE, nodeId);
+
+			org1.remove(n);
+		}
+	}
+
+	public void edgeAttributeAdded(String sourceId, long timeId, String edgeId,
+			String attribute, Object value) {
+		edgeAttributeChanged(sourceId, timeId, edgeId, attribute, null, value);
+	}
+
+	public void edgeAttributeChanged(String sourceId, long timeId,
+			String edgeId, String attribute, Object oldValue, Object newValue) {
+		if (attribute.equals(metaOrganizationIndexAttribute)) {
+			Organization org1;
+			Organization org2 = organizations.get(newValue);
+			Edge e = entitiesGraph.getEdge(edgeId);
+
+			if (oldValue != null) {
+				org1 = organizations.get(oldValue);
+
+				if (org1 != null) {
+					for (int i = 0; i < listeners.size(); i++)
+						listeners.get(i).organizationChanged(
+								org1.getMetaIndex(),
+								org1.getMetaOrganizationIndex(),
+								ChangeType.REMOVE, ElementType.EDGE, edgeId);
+
+					org1.remove(e);
+				}
+			}
+
+			org2.include(e);
+
+			for (int i = 0; i < listeners.size(); i++)
+				listeners.get(i).organizationChanged(org2.getMetaIndex(),
+						org2.getMetaOrganizationIndex(), ChangeType.ADD,
+						ElementType.EDGE, edgeId);
+		}
+	}
+
+	public void edgeAttributeRemoved(String sourceId, long timeId,
+			String edgeId, String attribute) {
+		if (attribute.equals(metaOrganizationIndexAttribute)) {
+			Edge e = entitiesGraph.getEdge(edgeId);
+			Organization org1 = organizations.get(e.getAttribute(attribute));
+
+			for (int i = 0; i < listeners.size(); i++)
+				listeners.get(i).organizationChanged(org1.getMetaIndex(),
+						org1.getMetaOrganizationIndex(), ChangeType.REMOVE,
+						ElementType.EDGE, edgeId);
+
+			org1.remove(e);
+		}
+	}
+
+	public void mitose(Object metaIndex, Organization base,
+			LinkedList<String> orphans) {
+		throw new UnsupportedOperationException();
 	}
 }

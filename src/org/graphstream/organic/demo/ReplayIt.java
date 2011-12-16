@@ -25,47 +25,53 @@
  */
 package org.graphstream.organic.demo;
 
+import org.graphstream.algorithm.measure.MaxSimultaneousNodeCount;
 import org.graphstream.graph.implementations.AdjacencyListGraph;
+import org.graphstream.organic.OrganizationManagerFactory;
 import org.graphstream.organic.OrganizationsGraph;
 import org.graphstream.organic.Validation;
 import org.graphstream.organic.plugins.Colorize;
-import org.graphstream.organic.plugins.replay.Replayable;
-import org.graphstream.stream.file.FileSinkDGS;
+import org.graphstream.organic.ui.OrganizationsView;
 import org.graphstream.stream.file.FileSourceDGS;
+import org.graphstream.util.VerboseSink;
 
-public class MakeReplay {
+public class ReplayIt {
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
+		System.setProperty("gs.ui.renderer",
+				"org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+		System.setProperty(OrganizationManagerFactory.PROPERTY,
+				"plugins.replay.ReplayOrganizationManager");
 		System.setProperty(Validation.PROPERTY, "none");
+
+		String what = "replayable.dgs";
 
 		FileSourceDGS dgs = new FileSourceDGS();
 		AdjacencyListGraph g = new AdjacencyListGraph("g");
 		OrganizationsGraph metaGraph = new OrganizationsGraph(g);
+		
+		OrganizationsView ui = new OrganizationsView(metaGraph);
+		ui.enableHQ();
+		ui.getMetaViewer().enableAutoLayout();
+		ui.createFrame().repaint();
 
-		Colorize c = new Colorize();
-		c.loadPatternFromStream(MakeReplay.class.getResourceAsStream("colors"));
-
-		metaGraph.getManager().enablePlugin(c);
-		metaGraph.getManager().enablePlugin(new Replayable());
-		metaGraph.getManager().setMetaIndexAttribute("meta.index");
-
-		FileSinkDGS dgsOut = new FileSinkDGS();
-		g.addSink(dgsOut);
+		g.addAttribute("ui.stylesheet", "graph {fill-mode:gradient-radial;fill-color:#FFFFFF,#EEEEEE;} node {stroke-mode:plain;stroke-color:#1D1D1D;stroke-width:1px;}");
+		metaGraph.addAttribute("ui.stylesheet", "graph {fill-mode:gradient-radial;fill-color:#FFFFFF,#EEEEEE;} node {stroke-mode:plain;stroke-color:#1D1D1D;stroke-width:2px;}");
+		
+		// g.addSink(new VerboseSink(System.err));
 		dgs.addSink(g);
 
-		dgsOut.begin("replayable.dgs");
-		dgs.begin(Demo.class.getResourceAsStream("BoidsMovie+antco2.dgs"));
+		dgs.begin(what);
 
-		int step = 0;
-
-		while (dgs.nextStep())
-			System.out.printf("Step #%d\n", step++);
+		while (dgs.nextStep()) {
+			ui.pumpEvents();
+			Thread.sleep(100);
+		}
 
 		dgs.end();
-		dgsOut.end();
 	}
 
 }

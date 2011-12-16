@@ -25,23 +25,35 @@
  */
 package org.graphstream.organic.plugins.replay;
 
+import java.util.LinkedList;
+
 import org.graphstream.graph.Graph;
+import org.graphstream.organic.Organization;
 import org.graphstream.organic.OrganizationListener;
 import org.graphstream.organic.OrganizationManager;
 import org.graphstream.organic.Plugin;
+import org.graphstream.stream.SinkAdapter;
 
 public class Replayable implements Plugin, OrganizationListener {
 
+	protected OrganizationManager manager;
 	protected Graph graph;
+	protected OrganizationInternalSink internalSink;
+	protected LinkedList<PendingEvent> events;
 
 	public void init(OrganizationManager manager) {
 		manager.addOrganizationListener(this);
+		this.manager = manager;
 		graph = manager.getEntitiesGraph();
+		internalSink = new OrganizationInternalSink();
+		events = new LinkedList<PendingEvent>();
 	}
 
 	public void connectionCreated(Object metaIndex1,
 			Object metaOrganizationIndex1, Object metaIndex2,
 			Object metaOrganizationIndex2, String connection) {
+		flushPendingEvents();
+		
 		graph.addAttribute("organic.event.connectionCreated", metaIndex1,
 				metaOrganizationIndex1, metaIndex2, metaOrganizationIndex2,
 				connection);
@@ -50,6 +62,8 @@ public class Replayable implements Plugin, OrganizationListener {
 	public void connectionRemoved(Object metaIndex1,
 			Object metaOrganizationIndex1, Object metaIndex2,
 			Object metaOrganizationIndex2, String connection) {
+		flushPendingEvents();
+		
 		graph.addAttribute("organic.event.connectionRemoved", metaIndex1,
 				metaOrganizationIndex1, metaIndex2, metaOrganizationIndex2,
 				connection);
@@ -58,6 +72,8 @@ public class Replayable implements Plugin, OrganizationListener {
 	public void organizationChanged(Object metaIndex,
 			Object metaOrganizationIndex, ChangeType changeType,
 			ElementType elementType, String elementId) {
+		flushPendingEvents();
+		
 		graph.addAttribute("organic.event.organizationChanged", metaIndex,
 				metaOrganizationIndex, changeType.name(), elementType.name(),
 				elementId);
@@ -65,6 +81,15 @@ public class Replayable implements Plugin, OrganizationListener {
 
 	public void organizationCreated(Object metaIndex,
 			Object metaOrganizationIndex, String rootNodeId) {
+		flushPendingEvents();
+		
+		Organization org = manager.getOrganization(metaOrganizationIndex);
+		org.addAttributeSink(internalSink);
+
+		for (String key : org.getAttributeKeySet())
+			internalSink.graphAttributeAdded(metaOrganizationIndex.toString(),
+					0, key, org.getAttribute(key));
+
 		graph.addAttribute("organic.event.organizationCreated", metaIndex,
 				metaOrganizationIndex, rootNodeId);
 	}
@@ -72,26 +97,75 @@ public class Replayable implements Plugin, OrganizationListener {
 	public void organizationMerged(Object metaIndex,
 			Object metaOrganizationIndex1, Object metaOrganizationIndex2,
 			String rootNodeId) {
+		flushPendingEvents();
+		
 		graph.addAttribute("organic.event.organizationMerged", metaIndex,
 				metaOrganizationIndex1, metaOrganizationIndex2, rootNodeId);
 	}
 
 	public void organizationRemoved(Object metaIndex,
 			Object metaOrganizationIndex) {
+		flushPendingEvents();
+		
 		graph.addAttribute("organic.event.organizationRemoved", metaIndex,
 				metaOrganizationIndex);
+		manager.getOrganization(metaOrganizationIndex).removeAttributeSink(
+				internalSink);
 	}
 
 	public void organizationRootNodeUpdated(Object metaIndex,
 			Object metaOrganizationIndex, String rootNodeId) {
+		flushPendingEvents();
+		
 		graph.addAttribute("organic.event.organizationRootNodeUpdated",
 				metaIndex, metaOrganizationIndex, rootNodeId);
 	}
 
 	public void organizationSplited(Object metaIndex,
 			Object metaOrganizationBase, Object metaOrganizationChild) {
-		graph.addAttribute("organic.event.organizationRootNodeSplited",
-				metaIndex, metaOrganizationBase, metaOrganizationChild);
+		flushPendingEvents();
+		
+		graph.addAttribute("organic.event.organizationSplited", metaIndex,
+				metaOrganizationBase, metaOrganizationChild);
 	}
 
+	private void flushPendingEvents() {
+		PendingEvent e;
+
+		while (events.size() > 0) {
+			e = events.poll();
+			graph.addAttribute(e.key, e.args);
+		}
+	}
+
+	protected class OrganizationInternalSink extends SinkAdapter {
+		public void graphAttributeAdded(String sourceId, long timeId,
+				String attribute, Object value) {
+			events.add(new PendingEvent(
+					"organic.event.organizationAttributeSet", sourceId,
+					attribute, value));
+		}
+
+		public void graphAttributeChanged(String sourceId, long timeId,
+				String attribute, Object oldValue, Object newValue) {
+			graphAttributeAdded(sourceId, timeId, attribute, newValue);
+		}
+
+		public void graphAttributeRemoved(String sourceId, long timeId,
+				String attribute) {
+			events.add(new PendingEvent(
+					"organic.event.organizationAttributeRemoved", sourceId,
+					attribute));
+		}
+	}
+
+	protected class PendingEvent {
+		String key;
+		Object[] args;
+
+		PendingEvent(String key, Object... args) {
+			this.key = key;
+			this.args = args;
+		}
+	}
 }

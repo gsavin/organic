@@ -23,49 +23,23 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C and LGPL licenses and that you accept their terms.
  */
-package org.graphstream.organic.demo;
+package org.graphstream.organic;
 
-import org.graphstream.graph.implementations.AdjacencyListGraph;
-import org.graphstream.organic.OrganizationsGraph;
-import org.graphstream.organic.Validation;
-import org.graphstream.organic.plugins.Colorize;
-import org.graphstream.organic.plugins.replay.Replayable;
-import org.graphstream.stream.file.FileSinkDGS;
-import org.graphstream.stream.file.FileSourceDGS;
+import java.io.IOException;
+import java.util.Properties;
 
-public class MakeReplay {
+public class OrganicLauncher {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) throws Exception {
-		System.setProperty(Validation.PROPERTY, "none");
-
-		FileSourceDGS dgs = new FileSourceDGS();
-		AdjacencyListGraph g = new AdjacencyListGraph("g");
-		OrganizationsGraph metaGraph = new OrganizationsGraph(g);
-
-		Colorize c = new Colorize();
-		c.loadPatternFromStream(MakeReplay.class.getResourceAsStream("colors"));
-
-		metaGraph.getManager().enablePlugin(c);
-		metaGraph.getManager().enablePlugin(new Replayable());
-		metaGraph.getManager().setMetaIndexAttribute("meta.index");
-
-		FileSinkDGS dgsOut = new FileSinkDGS();
-		g.addSink(dgsOut);
-		dgs.addSink(g);
-
-		dgsOut.begin("replayable.dgs");
-		dgs.begin(Demo.class.getResourceAsStream("BoidsMovie+antco2.dgs"));
-
-		int step = 0;
-
-		while (dgs.nextStep())
-			System.out.printf("Step #%d\n", step++);
-
-		dgs.end();
-		dgsOut.end();
+	public OrganicLauncher() {
+		
 	}
-
+	
+	public static void main(String ... args) throws IOException {
+		Properties prop = new Properties();
+		
+		prop.setProperty(Validation.PROPERTY, "none");
+		prop.setProperty(OrganizationManagerFactory.PROPERTY, "DefaultOrganizationManager");
+		
+		prop.storeToXML(System.out, "Organic default settings", "utf-8");
+	}
 }

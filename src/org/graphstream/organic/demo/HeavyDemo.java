@@ -30,6 +30,7 @@ import org.graphstream.organic.OrganizationListener;
 import org.graphstream.organic.OrganizationsGraph;
 import org.graphstream.organic.OrganizationListener.ChangeType;
 import org.graphstream.organic.OrganizationListener.ElementType;
+import org.graphstream.organic.plugins.Colorize;
 import org.graphstream.stream.ElementSink;
 import org.graphstream.stream.file.FileSinkImages;
 import org.graphstream.stream.file.FileSourceDGS;
@@ -47,23 +48,10 @@ public class HeavyDemo implements OrganizationListener, ElementSink {
 		AdjacencyListGraph g = new AdjacencyListGraph("g");
 		OrganizationsGraph metaGraph = new OrganizationsGraph(g);
 
-		FileSinkImages images1 = new FileSinkImages();
-		images1.setQuality(Quality.HIGH);
-		images1.setOutputPolicy(OutputPolicy.BY_STEP);
+		Colorize c = new Colorize();
+		c.loadPatternFromStream(MakeReplay.class.getResourceAsStream("colors"));
 
-		FileSinkImages images2 = new FileSinkImages();
-		images2.setResolution(Resolutions.VGA);
-		images2.setQuality(Quality.HIGH);
-		images2.setOutputPolicy(OutputPolicy.BY_STEP);
-		images2.setLayoutPolicy(LayoutPolicy.COMPUTED_AT_NEW_IMAGE);
-		images2.setLayoutStepPerFrame(5);
-
-		g.addSink(images1);
-		metaGraph.addSink(images2);
-
-		images1.begin("entities_");
-		images2.begin("meta_");
-		
+		metaGraph.getManager().enablePlugin(c);
 		metaGraph.getManager().setMetaIndexAttribute("meta.index");
 		//metaGraph.getManager().addOrganizationListener(new HeavyTest());
 
@@ -78,9 +66,6 @@ public class HeavyDemo implements OrganizationListener, ElementSink {
 
 		while (dgs.nextStep())
 			System.out.printf("step #%d\n", step++);
-		
-		images1.end();
-		images2.end();
 	}
 
 	public void connectionCreated(Object metaIndex1,

@@ -114,4 +114,12 @@ public abstract class OrganizationManager extends SinkAdapter implements
 	public boolean isAvailable(Element e) {
 		return true;
 	}
+	
+	public abstract void mitose(Object metaIndex, Organization base, LinkedList<String> orphans);
+	
+	public void rootNodeUpdate(Organization org) {
+		for (OrganizationListener l : listeners)
+			l.organizationRootNodeUpdated(org.metaIndex,
+					org.metaOrganizationIndex, org.organizationRoot.getId());
+	}
 }
