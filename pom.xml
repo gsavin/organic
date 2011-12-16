@@ -202,6 +202,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.graphstream</groupId>
+			<artifactId>gs-algo</artifactId>
+			<version>1.x-git</version>
+			<optional>false</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.graphstream</groupId>
 			<artifactId>gs-subgraph</artifactId>
 			<version>0.x-git</version>
 			<optional>false</optional>
