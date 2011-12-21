@@ -23,7 +23,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.graphstream</groupId>
-	<artifactId>organization</artifactId>
+	<artifactId>organic</artifactId>
 	<version>0.x-git</version>
 
 	<name>Organization</name>
