@@ -25,16 +25,13 @@
  */
 package org.graphstream.organic;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 
 import org.graphstream.graph.Edge;
-import org.graphstream.graph.Element;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
-import org.graphstream.graph.subgraph.Conditions;
-import org.graphstream.graph.subgraph.IncludeCondition;
-import org.graphstream.graph.subgraph.SubGraph;
+import org.graphstream.graph.filtered.FilteredGraph;
+import org.graphstream.graph.filtered.FilteredNode;
 import org.graphstream.organic.Validation.Level;
 
 /**
@@ -44,8 +41,7 @@ import org.graphstream.organic.Validation.Level;
  * @author Guilhelm Savin
  * 
  */
-public class Organization extends SubGraph implements IncludeCondition,
-		Validable {
+public class Organization extends FilteredGraph implements Validable {
 	protected Object metaIndex;
 	protected Object metaOrganizationIndex;
 
@@ -57,8 +53,7 @@ public class Organization extends SubGraph implements IncludeCondition,
 
 	public Organization(OrganizationManager manager, Object metaIndex,
 			Object metaOrganizationIndex, Graph fullGraph, Node root) {
-		super(metaOrganizationIndex.toString(), fullGraph, Conditions.none(),
-				true);
+		super(fullGraph);
 
 		// System.out.printf("*** created %s@%s ***%n", metaOrganizationIndex,
 		// metaIndex);
@@ -66,7 +61,6 @@ public class Organization extends SubGraph implements IncludeCondition,
 		this.metaIndex = metaIndex;
 		this.metaOrganizationIndex = metaOrganizationIndex;
 		this.manager = manager;
-		this.condition = this;
 		this.organizationRoot = root;
 		this.initialized = false;
 	}
@@ -91,7 +85,7 @@ public class Organization extends SubGraph implements IncludeCondition,
 
 		while (toVisit.size() > 0) {
 			Node n = toVisit.poll();
-			if (!nodes.contains(n.getId()))
+			if (!contains(n))
 				include(n);
 
 			for (Edge e : n.getEdgeSet()) {
@@ -100,7 +94,7 @@ public class Organization extends SubGraph implements IncludeCondition,
 
 				Node o = e.getOpposite(n);
 
-				if (!nodes.contains(o.getId())
+				if (!contains(o)
 						&& o.hasAttribute(manager.metaIndexAttribute)
 						&& metaIndex.equals(o
 								.getAttribute(manager.metaIndexAttribute))) {
@@ -123,7 +117,7 @@ public class Organization extends SubGraph implements IncludeCondition,
 	}
 
 	public void setRootNode(Node root) {
-		if (isInside(root)) {
+		if (contains(root)) {
 			organizationRoot = root;
 			manager.rootNodeUpdate(this);
 		}
@@ -137,19 +131,15 @@ public class Organization extends SubGraph implements IncludeCondition,
 		return metaOrganizationIndex;
 	}
 
-	public boolean isInside(Element e) {
-		if (e instanceof Node) {
-			return nodes.contains(e.getId());
-		} else if (e instanceof Edge) {
-			return edges.contains(e.getId());
-		} else {
-			// WTF ?
-		}
-
-		return false;
-	}
-
-	public void include(Element e) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.graphstream.graph.filtered.FilteredGraph#include(org.graphstream.
+	 * graph.Edge)
+	 */
+	@Override
+	public void include(Edge e) {
 		Object emi = e.getAttribute(manager.metaIndexAttribute);
 		Object emoi = e.getAttribute(manager.metaOrganizationIndexAttribute);
 
@@ -173,36 +163,75 @@ public class Organization extends SubGraph implements IncludeCondition,
 										"element \"%s\" already in %s@%s, including in %s@%s (really ? %s)",
 										e.getId(), emoi, emi,
 										metaOrganizationIndex, metaIndex,
-										manager.getOrganization(emoi).isInside(
+										manager.getOrganization(emoi).contains(
 												e)));
 			}
 		} else {
 			e.setAttribute(manager.metaOrganizationIndexAttribute,
 					metaOrganizationIndex);
-			// e.setAttribute("ui.style", String.format("fill-color: %s;",
-			// color));
-
 			super.include(e);
-			// printContent();
+		}
+	}
 
-			if (e instanceof Node) {
-				Node n = (Node) e;
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.graphstream.graph.filtered.FilteredGraph#include(org.graphstream.
+	 * graph.Node)
+	 */
+	@Override
+	public void include(Node n) {
+		Object emi = n.getAttribute(manager.metaIndexAttribute);
+		Object emoi = n.getAttribute(manager.metaOrganizationIndexAttribute);
 
-				// System.out.printf("[%s@%s] include node \"%s\"%n",
-				// metaOrganizationIndex, metaIndex, n.getId());
+		if (emi != null && !metaIndex.equals(emi) && n instanceof Node)
+			throw new Error("try to include node '" + n.getId()
+					+ "' with bad meta index '" + emi + "' ('" + metaIndex
+					+ "' expected) in '" + metaOrganizationIndex + "'");
 
-				for (Edge edge : n.getEdgeSet()) {
-					Node o = edge.getOpposite(n);
+		if (emi == null)
+			n.setAttribute(manager.metaIndexAttribute, metaIndex);
 
-					if (isInside(o))
-						include(edge);
-				}
+		if (emoi != null) {
+			if (metaOrganizationIndex.equals(emoi)) {
+				// System.err.printf(
+				// "warning: include twice \"%s\" in %s@%s%n", e
+				// .getId(), metaOrganizationIndex, metaIndex);
+			} else {
+				throw new Error(
+						String
+								.format(
+										"element \"%s\" already in %s@%s, including in %s@%s (really ? %s)",
+										n.getId(), emoi, emi,
+										metaOrganizationIndex, metaIndex,
+										manager.getOrganization(emoi).contains(
+												n)));
+			}
+		} else {
+			n.setAttribute(manager.metaOrganizationIndexAttribute,
+					metaOrganizationIndex);
+
+			super.include(n);
+
+			for (Edge edge : n.getEdgeSet()) {
+				Node o = edge.getOpposite(n);
+
+				if (contains(o))
+					include(edge);
 			}
 		}
 	}
 
-	public void remove(Element e) {
-
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.graphstream.graph.filtered.FilteredGraph#notInclude(org.graphstream
+	 * .graph.Edge)
+	 */
+	@Override
+	public void notInclude(Edge e) {
 		Object emoi = e.getAttribute(manager.metaOrganizationIndexAttribute);
 
 		if (emoi != null && !emoi.equals(metaOrganizationIndex))
@@ -214,39 +243,56 @@ public class Organization extends SubGraph implements IncludeCondition,
 
 		e.removeAttribute(manager.metaOrganizationIndexAttribute);
 
-		super.remove(e);
-		// printContent();
-
-		if (e instanceof Node) {
-			// System.out.printf("[%s@%s] remove node %s%n",
-			// metaOrganizationIndex, metaIndex, e.getId());
-			Node n = (Node) e;
-
-			for (Edge edge : n.getEdgeSet()) {
-				if (isInside(edge))
-					remove(edge);
-			}
-
-			if (organizationRoot == null
-					|| e.getId().equals(organizationRoot.getId()))
-				checkRootNode();
-		}
-
-		// check();
+		super.notInclude(e);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.graphstream.graph.filtered.FilteredGraph#notInclude(org.graphstream
+	 * .graph.Node)
+	 */
+	@Override
+	public void notInclude(Node n) {
+		Object emoi = n.getAttribute(manager.metaOrganizationIndexAttribute);
+
+		if (emoi != null && !emoi.equals(metaOrganizationIndex))
+			throw new Error(
+					String
+							.format(
+									"remove element %s which is not in the organization %s@%s%n",
+									n.getId(), metaOrganizationIndex, metaIndex));
+
+		n.removeAttribute(manager.metaOrganizationIndexAttribute);
+
+		super.notInclude(n);
+
+		for (Edge edge : n.getEdgeSet()) {
+			if (contains(edge))
+				notInclude(edge);
+		}
+
+		if (organizationRoot == null
+				|| n.getId().equals(organizationRoot.getId()))
+			checkRootNode();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.graphstream.graph.filtered.FilteredGraph#empty()
+	 */
+	@Override
 	public void empty() {
-		LinkedList<String> nodes = new LinkedList<String>(this.nodes);
-		while (nodes.size() > 0) {
-			Node n = fullGraph.getNode(nodes.poll());
-			remove(n);
-		}
-		super.empty();
-	}
+		LinkedList<Node> nodes = new LinkedList<Node>(getNodeSet());
 
-	protected void printContent() {
-		System.out.printf("[%s@%s] content: %s%n", metaOrganizationIndex,
-				metaIndex, Arrays.toString(nodes.toArray()));
+		while (nodes.size() > 0) {
+			Node n = element.getNode(nodes.poll().getId());
+			notInclude(n);
+		}
+
+		super.empty();
 	}
 
 	public void validate(Level level) throws ValidationException {
@@ -264,7 +310,7 @@ public class Organization extends SubGraph implements IncludeCondition,
 			reached.add(n.getId());
 
 			for (Edge e : n.getEdgeSet()) {
-				if (!edges.contains(e.getId()))
+				if (!contains(e))
 					continue;
 
 				Node o = e.getOpposite(n);
@@ -280,15 +326,17 @@ public class Organization extends SubGraph implements IncludeCondition,
 		}
 
 		for (String id : reached) {
-			if (!nodes.contains(id))
+			Node n = element.getNode(id);
+
+			if (!contains(n))
 				throw new ValidationException(this,
-						"unknown node reached, '%s'", id);
+						"unknown node reached, '%s'", n.getId());
 		}
 
-		for (String id : nodes) {
-			if (!reached.contains(id))
+		for (Node n : getEachNode()) {
+			if (!reached.contains(n.getId()))
 				throw new ValidationException(this,
-						"known node unreached, '%s'", id);
+						"known node unreached, '%s'", n.getId());
 		}
 		/*
 		 * for (String id : crossed) { if (!edges.contains(id)) throw new
@@ -297,19 +345,19 @@ public class Organization extends SubGraph implements IncludeCondition,
 		 * for (String id : edges) { if (!crossed.contains(id)) throw new
 		 * ValidationException(this, "known edge uncrossed, '%s'", id); }
 		 */
-		for (String id : nodes) {
-			Node n = fullGraph.getNode(id);
+		for (FilteredNode fn : this.<FilteredNode> getEachNode()) {
+			Node n = fn.getFilteredElement();
 
 			if (!metaIndex.equals(n.getAttribute(manager.metaIndexAttribute)))
 				throw new ValidationException(this,
-						"known node unreached, '%s'", id);
+						"invalid meta index of node '%s'", n.getId());
 
 			for (Edge e : n.getEdgeSet()) {
 				Node o = e.getOpposite(n);
 				Object omoi = o
 						.getAttribute(manager.metaOrganizationIndexAttribute);
 
-				if (nodes.contains(o.getId())) {
+				if (contains(o)) {
 					if (!metaOrganizationIndex.equals(omoi))
 						throw new ValidationException(this,
 								"node should not be included '%s'", o.getId());
@@ -323,8 +371,7 @@ public class Organization extends SubGraph implements IncludeCondition,
 	}
 
 	protected void checkRootNode() {
-		if (organizationRoot != null
-				&& !nodes.contains(organizationRoot.getId()))
+		if (organizationRoot != null && contains(organizationRoot))
 			organizationRoot = null;
 
 		Node root = organizationRoot;
@@ -333,20 +380,20 @@ public class Organization extends SubGraph implements IncludeCondition,
 		if (root != null) {
 			for (Edge e : root.getEdgeSet()) {
 				Node o = e.getOpposite(root);
-				if (isInside(o))
+				if (contains(o))
 					count++;
 			}
 		} else {
 			count = -1;
 		}
 
-		for (String nodeId : nodes) {
-			Node n = fullGraph.getNode(nodeId);
+		for (FilteredNode fn : this.<FilteredNode> getEachNode()) {
+			Node n = fn.getFilteredElement();
 			int c = 0;
 
 			for (Edge e : n.getEdgeSet()) {
 				Node o = e.getOpposite(n);
-				if (isInside(o))
+				if (contains(o))
 					c++;
 			}
 
@@ -387,7 +434,7 @@ public class Organization extends SubGraph implements IncludeCondition,
 			reached.add(n.getId());
 
 			for (Edge e : n.getEdgeSet()) {
-				if (!edges.contains(e.getId()))
+				if (!contains(e))
 					continue;
 
 				Node o = e.getOpposite(n);
@@ -403,18 +450,22 @@ public class Organization extends SubGraph implements IncludeCondition,
 			}
 		}
 
-		boolean stable = nodes.size() == reached.size();
+		boolean stable = getNodeCount() == reached.size();
 
 		for (String id : reached) {
-			stable = stable && nodes.contains(id);
+			Node n = element.getNode(id);
+			stable = stable && contains(n);
 		}
 
 		if (!stable) {
 
 			// System.out.printf("\tnot stable%n");
 
-			LinkedList<String> notReached = new LinkedList<String>(nodes);
-			notReached.removeAll(reached);
+			LinkedList<String> notReached = new LinkedList<String>();
+
+			for (Node n : getEachNode())
+				if (!reached.contains(n.getId()))
+					notReached.add(n.getId());
 
 			if (notReached.size() > 0) {
 				manager.mitose(metaIndex, this, notReached);

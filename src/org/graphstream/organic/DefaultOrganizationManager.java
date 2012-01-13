@@ -109,7 +109,12 @@ public class DefaultOrganizationManager extends OrganizationManager {
 
 		if (nmoi != null) {
 			Organization org = organizations.get(nmoi);
-			org.remove(e);
+			
+			if (e instanceof Node)
+				org.notInclude((Node) e);
+			else
+				org.notInclude((Edge) e);
+			
 			org.check();
 		}
 	}
@@ -195,7 +200,7 @@ public class DefaultOrganizationManager extends OrganizationManager {
 
 			if (nmoi != null) {
 				Organization org = organizations.get(nmoi);
-				org.remove(n);
+				org.notInclude(n);
 
 				// If organization is empty,
 				// remove this organization
@@ -231,7 +236,7 @@ public class DefaultOrganizationManager extends OrganizationManager {
 					&& n.hasAttribute(metaOrganizationIndexAttribute)) {
 				Organization org = organizations.get(n
 						.getAttribute(metaOrganizationIndexAttribute));
-				org.remove(n);
+				org.notInclude(n);
 
 				for (int i = 0; i < n.getDegree(); i++) {
 					Edge e = n.getEdge(i);
@@ -245,7 +250,7 @@ public class DefaultOrganizationManager extends OrganizationManager {
 									org.metaOrganizationIndex, o.metaIndex,
 									o.metaOrganizationIndex, e.getId());
 
-					org.remove(e);
+					org.notInclude(e);
 				}
 
 				// System.out.printf("remove node \"%s\" from %s@%s%n", nodeId,
@@ -386,7 +391,7 @@ public class DefaultOrganizationManager extends OrganizationManager {
 			nodes.add(n);
 
 		for (Node n : nodes) {
-			org2.remove(n);
+			org2.notInclude(n);
 			org1.include(n);
 		}
 
@@ -416,7 +421,7 @@ public class DefaultOrganizationManager extends OrganizationManager {
 
 		for (String nodeId : orphans) {
 			Node n = entitiesGraph.getNode(nodeId);
-			base.remove(n);
+			base.notInclude(n);
 		}
 
 		if (base.getNodeCount() == 0)

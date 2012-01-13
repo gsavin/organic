@@ -188,7 +188,7 @@ public class ReplayOrganizationManager extends OrganizationManager {
 								org1.getMetaOrganizationIndex(),
 								ChangeType.REMOVE, ElementType.NODE, nodeId);
 
-					org1.remove(n);
+					org1.notInclude(n);
 				}
 			}
 
@@ -220,7 +220,7 @@ public class ReplayOrganizationManager extends OrganizationManager {
 						org1.getMetaOrganizationIndex(), ChangeType.REMOVE,
 						ElementType.NODE, nodeId);
 
-			org1.remove(n);
+			org1.notInclude(n);
 		}
 	}
 
@@ -246,7 +246,7 @@ public class ReplayOrganizationManager extends OrganizationManager {
 								org1.getMetaOrganizationIndex(),
 								ChangeType.REMOVE, ElementType.EDGE, edgeId);
 
-					org1.remove(e);
+					org1.notInclude(e);
 				}
 			}
 
@@ -270,7 +270,7 @@ public class ReplayOrganizationManager extends OrganizationManager {
 						org1.getMetaOrganizationIndex(), ChangeType.REMOVE,
 						ElementType.EDGE, edgeId);
 
-			org1.remove(e);
+			org1.notInclude(e);
 		}
 	}
 
