@@ -53,7 +53,7 @@ public class Organization extends FilteredGraph implements Validable {
 
 	public Organization(OrganizationManager manager, Object metaIndex,
 			Object metaOrganizationIndex, Graph fullGraph, Node root) {
-		super(fullGraph);
+		super(metaOrganizationIndex.toString(), fullGraph);
 
 		// System.out.printf("*** created %s@%s ***%n", metaOrganizationIndex,
 		// metaIndex);
@@ -120,7 +120,7 @@ public class Organization extends FilteredGraph implements Validable {
 		if (contains(root)) {
 			organizationRoot = root;
 			manager.rootNodeUpdate(this);
-		}
+		} else throw new Error("try to set root which is not in the organization");
 	}
 
 	public Object getMetaIndex() {
@@ -335,8 +335,10 @@ public class Organization extends FilteredGraph implements Validable {
 
 		for (Node n : getEachNode()) {
 			if (!reached.contains(n.getId()))
-				throw new ValidationException(this,
-						"known node unreached, '%s'", n.getId());
+				throw new ValidationException(
+						this,
+						"known node unreached, '%s' (reached are %s, nodes are %s and edges %s)",
+						n.getId(), reached, getNodeSet(), getEdgeSet());
 		}
 		/*
 		 * for (String id : crossed) { if (!edges.contains(id)) throw new
@@ -371,7 +373,7 @@ public class Organization extends FilteredGraph implements Validable {
 	}
 
 	protected void checkRootNode() {
-		if (organizationRoot != null && contains(organizationRoot))
+		if (organizationRoot != null && !contains(organizationRoot))
 			organizationRoot = null;
 
 		Node root = organizationRoot;
@@ -404,7 +406,7 @@ public class Organization extends FilteredGraph implements Validable {
 		}
 
 		if (root != organizationRoot) {
-			this.organizationRoot = root;
+			setRootNode(root);
 			manager.rootNodeUpdate(this);
 		}
 	}
@@ -426,6 +428,9 @@ public class Organization extends FilteredGraph implements Validable {
 
 		if (organizationRoot == null)
 			throw new Error("root is null");
+
+		if (!contains(organizationRoot))
+			throw new Error("root is not in organization");
 
 		toVisit.add(organizationRoot);
 

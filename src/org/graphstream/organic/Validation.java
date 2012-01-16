@@ -32,7 +32,7 @@ public class Validation {
 	public static Validation.Level getValidationLevel() {
 		Validation.Level l;
 
-		String p = System.getProperty(PROPERTY, "HARD");
+		String p = System.getProperty(PROPERTY, "PARANOID");
 		p = p.toUpperCase();
 
 		try {
@@ -55,6 +55,7 @@ public class Validation {
 		Validation.Level l = getValidationLevel();
 
 		switch (l) {
+		case PARANOID:
 		case SKEPTICAL:
 			return new DefaultValidator(l, manager);
 		case NONE:

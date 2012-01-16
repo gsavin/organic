@@ -391,6 +391,8 @@ public class DefaultOrganizationManager extends OrganizationManager {
 			nodes.add(n);
 
 		for (Node n : nodes) {
+			n = org2.getUnfilteredNode(n);
+			
 			org2.notInclude(n);
 			org1.include(n);
 		}
