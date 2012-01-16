@@ -50,8 +50,10 @@ public class DGSValidation implements OrganizationListener {
 		dgs.begin(DGSValidation.class
 				.getResourceAsStream("BoidsMovie+antco2.dgs"));
 
+		int step = 0;
+		
 		while (dgs.nextStep())
-			;
+			System.out.printf("> step #%d\n", step++);
 		
 		System.out.printf("DGS validation succeed\n");
 	}
