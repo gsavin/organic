@@ -40,6 +40,7 @@ public class Replayable implements Plugin, OrganizationListener {
 	protected Graph graph;
 	protected OrganizationInternalSink internalSink;
 	protected LinkedList<PendingEvent> events;
+	protected boolean eventProcessing;
 
 	public void init(OrganizationManager manager) {
 		manager.addOrganizationListener(this);
@@ -47,86 +48,174 @@ public class Replayable implements Plugin, OrganizationListener {
 		graph = manager.getEntitiesGraph();
 		internalSink = new OrganizationInternalSink();
 		events = new LinkedList<PendingEvent>();
+		eventProcessing = false;
 	}
 
 	public void connectionCreated(Object metaIndex1,
 			Object metaOrganizationIndex1, Object metaIndex2,
 			Object metaOrganizationIndex2, String connection) {
-		flushPendingEvents();
-		
-		graph.addAttribute("organic.event.connectionCreated", metaIndex1,
-				metaOrganizationIndex1, metaIndex2, metaOrganizationIndex2,
-				connection);
+		if (!eventProcessing) {
+			eventProcessing = true;
+			flushPendingEvents();
+
+			graph.addAttribute("organic.event.connectionCreated", metaIndex1,
+					metaOrganizationIndex1, metaIndex2, metaOrganizationIndex2,
+					connection);
+
+			flushPendingEvents();
+			eventProcessing = false;
+		} else {
+			events.addLast(new PendingEvent("organic.event.connectionCreated",
+					metaIndex1, metaOrganizationIndex1, metaIndex2,
+					metaOrganizationIndex2, connection));
+		}
 	}
 
 	public void connectionRemoved(Object metaIndex1,
 			Object metaOrganizationIndex1, Object metaIndex2,
 			Object metaOrganizationIndex2, String connection) {
-		flushPendingEvents();
-		
-		graph.addAttribute("organic.event.connectionRemoved", metaIndex1,
-				metaOrganizationIndex1, metaIndex2, metaOrganizationIndex2,
-				connection);
+		if (!eventProcessing) {
+			eventProcessing = true;
+			flushPendingEvents();
+
+			graph.addAttribute("organic.event.connectionRemoved", metaIndex1,
+					metaOrganizationIndex1, metaIndex2, metaOrganizationIndex2,
+					connection);
+
+			flushPendingEvents();
+			eventProcessing = false;
+		} else {
+			events.addLast(new PendingEvent("organic.event.connectionRemoved",
+					metaIndex1, metaOrganizationIndex1, metaIndex2,
+					metaOrganizationIndex2, connection));
+		}
 	}
 
 	public void organizationChanged(Object metaIndex,
 			Object metaOrganizationIndex, ChangeType changeType,
 			ElementType elementType, String elementId) {
-		flushPendingEvents();
-		
-		graph.addAttribute("organic.event.organizationChanged", metaIndex,
-				metaOrganizationIndex, changeType.name(), elementType.name(),
-				elementId);
+		if (!eventProcessing) {
+			eventProcessing = true;
+			flushPendingEvents();
+
+			graph.addAttribute("organic.event.organizationChanged", metaIndex,
+					metaOrganizationIndex, changeType.name(), elementType
+							.name(), elementId);
+
+			flushPendingEvents();
+			eventProcessing = false;
+		} else {
+			events.addLast(new PendingEvent(
+					"organic.event.organizationChanged", metaIndex,
+					metaOrganizationIndex, changeType.name(), elementType
+							.name(), elementId));
+		}
 	}
 
 	public void organizationCreated(Object metaIndex,
 			Object metaOrganizationIndex, String rootNodeId) {
-		flushPendingEvents();
-		
 		Organization org = manager.getOrganization(metaOrganizationIndex);
 		org.addAttributeSink(internalSink);
 
-		for (String key : org.getAttributeKeySet())
-			internalSink.graphAttributeAdded(metaOrganizationIndex.toString(),
-					0, key, org.getAttribute(key));
+		if (!eventProcessing) {
+			eventProcessing = true;
+			flushPendingEvents();
 
-		graph.addAttribute("organic.event.organizationCreated", metaIndex,
-				metaOrganizationIndex, rootNodeId);
+			graph.addAttribute("organic.event.organizationCreated", metaIndex,
+					metaOrganizationIndex, rootNodeId);
+
+			for (String key : org.getAttributeKeySet())
+				graph.addAttribute("organic.event.organizationAttributeSet",
+						metaOrganizationIndex.toString(), key, org
+								.getAttribute(key));
+
+			flushPendingEvents();
+			eventProcessing = false;
+		} else {
+			events.addLast(new PendingEvent(
+					"organic.event.organizationCreated", metaIndex,
+					metaOrganizationIndex, rootNodeId));
+
+			for (String key : org.getAttributeKeySet())
+				internalSink.graphAttributeAdded(metaOrganizationIndex
+						.toString(), 0, key, org.getAttribute(key));
+		}
 	}
 
 	public void organizationMerged(Object metaIndex,
 			Object metaOrganizationIndex1, Object metaOrganizationIndex2,
 			String rootNodeId) {
-		flushPendingEvents();
-		
-		graph.addAttribute("organic.event.organizationMerged", metaIndex,
-				metaOrganizationIndex1, metaOrganizationIndex2, rootNodeId);
+		if (!eventProcessing) {
+			eventProcessing = true;
+			flushPendingEvents();
+
+			graph.addAttribute("organic.event.organizationMerged", metaIndex,
+					metaOrganizationIndex1, metaOrganizationIndex2, rootNodeId);
+
+			flushPendingEvents();
+			eventProcessing = false;
+		} else {
+			events.addLast(new PendingEvent("organic.event.organizationMerged",
+					metaIndex, metaOrganizationIndex1, metaOrganizationIndex2,
+					rootNodeId));
+		}
 	}
 
 	public void organizationRemoved(Object metaIndex,
 			Object metaOrganizationIndex) {
-		flushPendingEvents();
-		
-		graph.addAttribute("organic.event.organizationRemoved", metaIndex,
-				metaOrganizationIndex);
+		if (!eventProcessing) {
+			eventProcessing = true;
+			flushPendingEvents();
+
+			graph.addAttribute("organic.event.organizationRemoved", metaIndex,
+					metaOrganizationIndex);
+
+			flushPendingEvents();
+			eventProcessing = false;
+		} else {
+			events.addLast(new PendingEvent(
+					"organic.event.organizationRemoved", metaIndex,
+					metaOrganizationIndex));
+		}
+
 		manager.getOrganization(metaOrganizationIndex).removeAttributeSink(
 				internalSink);
 	}
 
 	public void organizationRootNodeUpdated(Object metaIndex,
 			Object metaOrganizationIndex, String rootNodeId) {
-		flushPendingEvents();
-		
-		graph.addAttribute("organic.event.organizationRootNodeUpdated",
-				metaIndex, metaOrganizationIndex, rootNodeId);
+		if (!eventProcessing) {
+			eventProcessing = true;
+			flushPendingEvents();
+
+			graph.addAttribute("organic.event.organizationRootNodeUpdated",
+					metaIndex, metaOrganizationIndex, rootNodeId);
+
+			flushPendingEvents();
+			eventProcessing = false;
+		} else {
+			events.addLast(new PendingEvent(
+					"organic.event.organizationRootNodeUpdated", metaIndex,
+					metaOrganizationIndex, rootNodeId));
+		}
 	}
 
 	public void organizationSplited(Object metaIndex,
 			Object metaOrganizationBase, Object metaOrganizationChild) {
-		flushPendingEvents();
-		
-		graph.addAttribute("organic.event.organizationSplited", metaIndex,
-				metaOrganizationBase, metaOrganizationChild);
+		if (!eventProcessing) {
+			eventProcessing = true;
+			flushPendingEvents();
+
+			graph.addAttribute("organic.event.organizationSplited", metaIndex,
+					metaOrganizationBase, metaOrganizationChild);
+
+			flushPendingEvents();
+			eventProcessing = false;
+		} else {
+			events.addLast(new PendingEvent(
+					"organic.event.organizationSplited", metaIndex,
+					metaOrganizationBase, metaOrganizationChild));
+		}
 	}
 
 	private void flushPendingEvents() {
@@ -141,9 +230,20 @@ public class Replayable implements Plugin, OrganizationListener {
 	protected class OrganizationInternalSink extends SinkAdapter {
 		public void graphAttributeAdded(String sourceId, long timeId,
 				String attribute, Object value) {
-			events.add(new PendingEvent(
-					"organic.event.organizationAttributeSet", sourceId,
-					attribute, value));
+			if (!eventProcessing) {
+				eventProcessing = true;
+				flushPendingEvents();
+
+				graph.addAttribute("organic.event.organizationAttributeSet",
+						sourceId, attribute, value);
+
+				flushPendingEvents();
+				eventProcessing = false;
+			} else {
+				events.add(new PendingEvent(
+						"organic.event.organizationAttributeSet", sourceId,
+						attribute, value));
+			}
 		}
 
 		public void graphAttributeChanged(String sourceId, long timeId,
@@ -153,9 +253,21 @@ public class Replayable implements Plugin, OrganizationListener {
 
 		public void graphAttributeRemoved(String sourceId, long timeId,
 				String attribute) {
-			events.add(new PendingEvent(
-					"organic.event.organizationAttributeRemoved", sourceId,
-					attribute));
+			if (!eventProcessing) {
+				eventProcessing = true;
+				flushPendingEvents();
+
+				graph.addAttribute(
+						"organic.event.organizationAttributeRemoved", sourceId,
+						attribute);
+
+				flushPendingEvents();
+				eventProcessing = false;
+			} else {
+				events.add(new PendingEvent(
+						"organic.event.organizationAttributeRemoved", sourceId,
+						attribute));
+			}
 		}
 	}
 
