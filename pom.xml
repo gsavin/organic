@@ -24,7 +24,7 @@
 
 	<groupId>org.graphstream</groupId>
 	<artifactId>organic</artifactId>
-	<version>0.x-git</version>
+	<version>0.1-git</version>
 
 	<name>Organization</name>
 	<description>
