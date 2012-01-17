@@ -100,7 +100,26 @@ public class ReplayOrganizationManager extends OrganizationManager {
 
 				break;
 			case ORGANIZATIONCHANGED:
-				// Ignore
+				org = organizations.get(args[1]);
+
+				if (args[2].toString().equalsIgnoreCase("ADD")) {
+					if (args[3].toString().equalsIgnoreCase("NODE")) {
+						Node n = entitiesGraph.getNode(args[4].toString());
+						org.include(n);
+					} else {
+						Edge o = entitiesGraph.getEdge(args[4].toString());
+						org.include(o);
+					}
+				} else {
+					if (args[3].toString().equalsIgnoreCase("NODE")) {
+						Node n = entitiesGraph.getNode(args[4].toString());
+						org.notInclude(n);
+					} else {
+						Edge o = entitiesGraph.getEdge(args[4].toString());
+						org.notInclude(o);
+					}
+				}
+
 				break;
 			case ORGANIZATIONCREATED:
 				elt = entitiesGraph.getNode((String) args[2]);
@@ -141,12 +160,12 @@ public class ReplayOrganizationManager extends OrganizationManager {
 			case ORGANIZATIONATTRIBUTESET:
 				org = organizations.get(args[0]);
 				org.setAttribute((String) args[1], args[2]);
-				
+
 				break;
 			case ORGANIZATIONATTRIBUTEREMOVED:
 				org = organizations.get(args[0]);
 				org.removeAttribute((String) args[1]);
-				
+
 				break;
 			}
 		} else if (key.equalsIgnoreCase("metaIndexAttribute")) {
