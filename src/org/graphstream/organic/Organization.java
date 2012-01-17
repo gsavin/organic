@@ -201,8 +201,18 @@ public class Organization extends FilteredGraph implements Validable {
 
 		if (emoi != null) {
 			if (metaOrganizationIndex.equals(emoi)) {
+				if (!contains(n)) {
+					super.include(n);
+
+					for (Edge edge : n.getEdgeSet()) {
+						Node o = edge.getOpposite(n);
+
+						if (contains(o))
+							include(edge);
+					}
+				}
 				// System.err.printf(
-				// "warning: include twice \"%s\" in %s@%s%n", e
+				// "warning: include twice \"%s\" in %s@%s%n", n
 				// .getId(), metaOrganizationIndex, metaIndex);
 			} else {
 				throw new Error(
