@@ -120,7 +120,13 @@ public class Organization extends FilteredGraph implements Validable {
 		if (contains(root)) {
 			organizationRoot = root;
 			manager.rootNodeUpdate(this);
-		} else throw new Error("try to set root which is not in the organization");
+		} else
+			throw new Error(
+					String
+							.format(
+									"try to set root '%s' which is not in the organization [%s|%s]",
+									root.getId(), metaIndex.toString(),
+									metaOrganizationIndex.toString()));
 	}
 
 	public Object getMetaIndex() {
