@@ -36,7 +36,7 @@ import org.graphstream.stream.file.FileSourceDGS;
 
 public class DGSValidation implements OrganizationListener {
 	public static void main(String[] args) throws IOException {
-		System.setProperty(Validation.PROPERTY, "paranoid");
+		// System.setProperty(Validation.PROPERTY, "paranoid");
 
 		FileSourceDGS dgs = new FileSourceDGS();
 		AdjacencyListGraph g = new AdjacencyListGraph("g");
