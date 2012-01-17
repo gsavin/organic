@@ -159,6 +159,8 @@ public class Organization extends FilteredGraph implements Validable {
 
 		if (emoi != null) {
 			if (metaOrganizationIndex.equals(emoi)) {
+				if (!contains(e))
+					super.include(e);
 				// System.err.printf(
 				// "warning: include twice \"%s\" in %s@%s%n", e
 				// .getId(), metaOrganizationIndex, metaIndex);
