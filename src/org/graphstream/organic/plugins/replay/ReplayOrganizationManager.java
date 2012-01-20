@@ -25,10 +25,12 @@
  */
 package org.graphstream.organic.plugins.replay;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
+import org.graphstream.graph.ElementNotFoundException;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.organic.Organization;
@@ -57,8 +59,18 @@ public class ReplayOrganizationManager extends OrganizationManager {
 		CONNECTIONCREATED, CONNECTIONREMOVED, ORGANIZATIONCHANGED, ORGANIZATIONCREATED, ORGANIZATIONMERGED, ORGANIZATIONREMOVED, ORGANIZATIONROOTNODEUPDATED, ORGANIZATIONSPLITED, ORGANIZATIONATTRIBUTESET, ORGANIZATIONATTRIBUTEREMOVED
 	}
 
+	HashMap<String, Organization> node2organization;
+	HashMap<String, Organization> edge2organization;
+
+	public boolean isEdgeAutoInclusionEnable() {
+		return false;
+	}
+
 	public void init(Graph g) {
 		super.init(g);
+
+		node2organization = new HashMap<String, Organization>();
+		edge2organization = new HashMap<String, Organization>();
 
 		for (String key : g.getAttributeKeySet())
 			handleAttribute(key, g.getAttribute(key));
@@ -100,26 +112,18 @@ public class ReplayOrganizationManager extends OrganizationManager {
 
 				break;
 			case ORGANIZATIONCHANGED:
-				org = organizations.get(args[1]);
-
-				if (args[2].toString().equalsIgnoreCase("ADD")) {
-					if (args[3].toString().equalsIgnoreCase("NODE")) {
-						Node n = entitiesGraph.getNode(args[4].toString());
-						org.include(n);
-					} else {
-						Edge o = entitiesGraph.getEdge(args[4].toString());
-						org.include(o);
-					}
-				} else {
-					if (args[3].toString().equalsIgnoreCase("NODE")) {
-						Node n = entitiesGraph.getNode(args[4].toString());
-						org.notInclude(n);
-					} else {
-						Edge o = entitiesGraph.getEdge(args[4].toString());
-						org.notInclude(o);
-					}
-				}
-
+				// org = organizations.get(args[1]);
+				/*
+				 * if (args[2].toString().equalsIgnoreCase("ADD")) { if
+				 * (args[3].toString().equalsIgnoreCase("NODE")) { Node n =
+				 * entitiesGraph.getNode(args[4].toString()); org.include(n); }
+				 * else { Edge o = entitiesGraph.getEdge(args[4].toString());
+				 * org.include(o); } } else { if
+				 * (args[3].toString().equalsIgnoreCase("NODE")) { Node n =
+				 * entitiesGraph.getNode(args[4].toString()); org.notInclude(n);
+				 * } else { Edge o = entitiesGraph.getEdge(args[4].toString());
+				 * org.notInclude(o); } }
+				 */
 				break;
 			case ORGANIZATIONCREATED:
 				elt = entitiesGraph.getNode((String) args[2]);
@@ -197,23 +201,22 @@ public class ReplayOrganizationManager extends OrganizationManager {
 			Organization org2 = organizations.get(newValue);
 			Node n = entitiesGraph.getNode(nodeId);
 
-			if (false && oldValue != null) {
-				org1 = organizations.get(oldValue);
+			org1 = node2organization.get(nodeId);
 
-				if (org1 != null) {
-					for (int i = 0; i < listeners.size(); i++)
-						listeners.get(i).organizationChanged(
-								org1.getMetaIndex(),
-								org1.getMetaOrganizationIndex(),
-								ChangeType.REMOVE, ElementType.NODE, nodeId);
+			if (org1 != null) {
+				for (int i = 0; i < listeners.size(); i++)
+					listeners.get(i).organizationChanged(org1.getMetaIndex(),
+							org1.getMetaOrganizationIndex(), ChangeType.REMOVE,
+							ElementType.NODE, nodeId);
 
-					org1.notInclude(n);
-				}
+				org1.notInclude(n);
 			}
 
 			if (org2 == null)
 				throw new NullPointerException(String.format(
 						"node '%s' : '%s'", nodeId, newValue.toString()));
+
+			node2organization.put(nodeId, org2);
 			org2.include(n);
 
 			for (int i = 0; i < listeners.size(); i++)
@@ -227,18 +230,24 @@ public class ReplayOrganizationManager extends OrganizationManager {
 			String nodeId, String attribute) {
 		if (attribute.equals(metaOrganizationIndexAttribute)) {
 			Node n = entitiesGraph.getNode(nodeId);
-			Organization org1 = organizations.get(n.getAttribute(attribute));
+			Organization org1;
 
-			if (org1 == null)
-				throw new NullPointerException("'" + nodeId
-						+ "' organization not found '"
-						+ n.getAttribute(attribute) + "'");
+			if (n == null)
+				throw new ElementNotFoundException("node \"%s\"", nodeId);
+
+			org1 = node2organization.get(nodeId);
+			
+			if (org1 == null) {
+				System.err.printf("[warning] organization unknown for node '%s'\n", nodeId);
+				return;
+			}
 
 			for (int i = 0; i < listeners.size(); i++)
 				listeners.get(i).organizationChanged(org1.getMetaIndex(),
 						org1.getMetaOrganizationIndex(), ChangeType.REMOVE,
 						ElementType.NODE, nodeId);
 
+			node2organization.remove(nodeId);
 			org1.notInclude(n);
 		}
 	}
@@ -255,21 +264,22 @@ public class ReplayOrganizationManager extends OrganizationManager {
 			Organization org2 = organizations.get(newValue);
 			Edge e = entitiesGraph.getEdge(edgeId);
 
-			if (oldValue != null) {
-				org1 = organizations.get(oldValue);
+			if (e == null)
+				throw new ElementNotFoundException("edge \"%s\"", edgeId);
 
-				if (org1 != null) {
-					for (int i = 0; i < listeners.size(); i++)
-						listeners.get(i).organizationChanged(
-								org1.getMetaIndex(),
-								org1.getMetaOrganizationIndex(),
-								ChangeType.REMOVE, ElementType.EDGE, edgeId);
+			org1 = edge2organization.get(edgeId);
 
-					org1.notInclude(e);
-				}
+			if (org1 != null) {
+				for (int i = 0; i < listeners.size(); i++)
+					listeners.get(i).organizationChanged(org1.getMetaIndex(),
+							org1.getMetaOrganizationIndex(), ChangeType.REMOVE,
+							ElementType.EDGE, edgeId);
+
+				org1.notInclude(e);
 			}
 
 			org2.include(e);
+			edge2organization.put(edgeId, org2);
 
 			for (int i = 0; i < listeners.size(); i++)
 				listeners.get(i).organizationChanged(org2.getMetaIndex(),
@@ -282,7 +292,17 @@ public class ReplayOrganizationManager extends OrganizationManager {
 			String edgeId, String attribute) {
 		if (attribute.equals(metaOrganizationIndexAttribute)) {
 			Edge e = entitiesGraph.getEdge(edgeId);
-			Organization org1 = organizations.get(e.getAttribute(attribute));
+			Organization org1;
+
+			if (e == null)
+				throw new ElementNotFoundException("edge \"%s\"", edgeId);
+
+			org1 = edge2organization.get(edgeId);
+
+			if (org1 == null) {
+				System.err.printf("[warning] organization unknown for edge '%s'\n", edgeId);
+				return;
+			}
 
 			for (int i = 0; i < listeners.size(); i++)
 				listeners.get(i).organizationChanged(org1.getMetaIndex(),
@@ -290,6 +310,7 @@ public class ReplayOrganizationManager extends OrganizationManager {
 						ElementType.EDGE, edgeId);
 
 			org1.notInclude(e);
+			edge2organization.remove(edgeId);
 		}
 	}
 

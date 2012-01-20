@@ -206,11 +206,13 @@ public class Organization extends FilteredGraph implements Validable {
 				if (!contains(n)) {
 					super.include(n);
 
-					for (Edge edge : n.getEdgeSet()) {
-						Node o = edge.getOpposite(n);
+					if (manager.isEdgeAutoInclusionEnable()) {
+						for (Edge edge : n.getEdgeSet()) {
+							Node o = edge.getOpposite(n);
 
-						if (contains(o))
-							include(edge);
+							if (contains(o))
+								include(edge);
+						}
 					}
 				}
 				// System.err.printf(
@@ -232,11 +234,13 @@ public class Organization extends FilteredGraph implements Validable {
 
 			super.include(n);
 
-			for (Edge edge : n.getEdgeSet()) {
-				Node o = edge.getOpposite(n);
+			if (manager.isEdgeAutoInclusionEnable()) {
+				for (Edge edge : n.getEdgeSet()) {
+					Node o = edge.getOpposite(n);
 
-				if (contains(o))
-					include(edge);
+					if (contains(o))
+						include(edge);
+				}
 			}
 		}
 	}
@@ -286,9 +290,11 @@ public class Organization extends FilteredGraph implements Validable {
 
 		super.notInclude(n);
 
-		for (Edge edge : n.getEdgeSet()) {
-			if (contains(edge))
-				notInclude(edge);
+		if (manager.isEdgeAutoInclusionEnable()) {
+			for (Edge edge : n.getEdgeSet()) {
+				if (contains(edge))
+					notInclude(edge);
+			}
 		}
 
 		if (organizationRoot == null

@@ -48,7 +48,7 @@ public abstract class OrganizationManager extends SinkAdapter implements
 	protected final Validator validator;
 
 	protected final LinkedList<Plugin> plugins;
-
+	
 	protected OrganizationManager() {
 		organizations = new HashMap<Object, Organization>();
 		listeners = new LinkedList<OrganizationListener>();
@@ -116,6 +116,8 @@ public abstract class OrganizationManager extends SinkAdapter implements
 	}
 	
 	public abstract void mitose(Object metaIndex, Organization base, LinkedList<String> orphans);
+	
+	public abstract boolean isEdgeAutoInclusionEnable();
 	
 	public void rootNodeUpdate(Organization org) {
 		for (OrganizationListener l : listeners)

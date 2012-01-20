@@ -60,12 +60,15 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 		manager.addOrganizationListener(this);
 
 		addAttribute("ui.stylesheet", DEFAULT_CSS);
+
+		System.out.printf("Manager is '%s'\n", manager.getClass()
+				.getSimpleName());
 	}
 
 	public Graph getEntitiesGraph() {
 		return entitiesGraph;
 	}
-	
+
 	public OrganizationManager getManager() {
 		return manager;
 	}
@@ -92,7 +95,7 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 		Node n = addNode(metaOrganizationIndex.toString());
 		n.addAttribute("meta.index", metaIndex);
 		n.addAttribute("meta.root", rootNodeId);
-		
+
 		GraphToElementAttribute g2ea = new GraphToElementAttribute(n);
 		manager.getOrganization(metaOrganizationIndex).addAttributeSink(g2ea);
 	}
@@ -152,10 +155,10 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 		String eid = getEdgeID(nid1, nid2);
 
 		Edge e = getEdge(eid);
-		
+
 		if (e == null)
 			return;
-		
+
 		HashSet<String> edges = e.getAttribute("connection.elements");
 		edges.remove(connection);
 
@@ -172,14 +175,14 @@ public class OrganizationsGraph extends AdjacencyListGraph implements
 
 		return String.format("('%s';'%s')", nid2, nid1);
 	}
-	
+
 	static class GraphToElementAttribute extends SinkAdapter {
 		Element e;
 
 		public GraphToElementAttribute(Element e) {
 			this.e = e;
 		}
-		
+
 		public void graphAttributeAdded(String sourceId, long timeId,
 				String attribute, Object value) {
 			e.addAttribute(attribute, value);

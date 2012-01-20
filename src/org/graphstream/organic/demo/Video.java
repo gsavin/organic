@@ -62,7 +62,7 @@ public class Video {
 		images2.setRenderer(RendererType.SCALA);
 		images2.setQuality(Quality.HIGH);
 		images2.setOutputPolicy(OutputPolicy.BY_STEP);
-		images2.setLayoutPolicy(LayoutPolicy.COMPUTED_AT_NEW_IMAGE);
+		images2.setLayoutPolicy(LayoutPolicy.COMPUTED_ONCE_AT_NEW_IMAGE);
 		images2.setLayoutStepPerFrame(2);
 		images2.setClearImageBeforeOutputEnabled(true);
 		

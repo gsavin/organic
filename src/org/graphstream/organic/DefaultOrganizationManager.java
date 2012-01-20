@@ -95,6 +95,10 @@ public class DefaultOrganizationManager extends OrganizationManager {
 		this.metaOrganizationIndexAttribute = metaOrganizationIndexAttribute;
 	}
 
+	public boolean isEdgeAutoInclusionEnable() {
+		return true;
+	}
+	
 	public boolean isAvailable(Element e) {
 		return e != edgeBeingRemoved;
 	}
