@@ -99,7 +99,7 @@ public class ComputeMeasures implements DynamicAlgorithm {
 		g.addAttribute("organic.measures.averageEdgeConnectivity.data",
 				averageEdgeConnectivity());
 
-		g.addAttribute("organic.measures.averageVertexConnectivity.data",
+		g.addAttribute("organic.measures.averageSize.data",
 				averageSize());
 	}
 
