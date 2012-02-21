@@ -99,6 +99,10 @@ public abstract class OrganizationManager extends SinkAdapter implements
 		this.metaOrganizationIndexAttribute = key;
 	}
 
+	public int getOrganizationCount() {
+		return organizations.size();
+	}
+	
 	public Organization getOrganization(Object id) {
 		return organizations.get(id);
 	}
