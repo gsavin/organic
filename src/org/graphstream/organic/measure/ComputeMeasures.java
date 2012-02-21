@@ -214,9 +214,12 @@ public class ComputeMeasures implements DynamicAlgorithm {
 		AdjacencyListGraph g = new AdjacencyListGraph("g");
 		OrganizationsGraph metaGraph = new OrganizationsGraph(g);
 
+		
 		g.addSink(dgsOut);
-
 		dgsOut.begin(what + "_measures.dgs");
+		
+		ComputeMeasures measures = new ComputeMeasures();
+		measures.init(metaGraph.getManager());
 
 		dgs.addSink(g);
 		dgs.begin(what);
