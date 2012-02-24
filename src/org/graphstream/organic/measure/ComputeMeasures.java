@@ -25,6 +25,8 @@
  */
 package org.graphstream.organic.measure;
 
+import java.io.PrintStream;
+
 import org.graphstream.algorithm.DynamicAlgorithm;
 import org.graphstream.algorithm.AlgorithmComputationTrigger;
 import org.graphstream.algorithm.AlgorithmComputationTrigger.Mode;
@@ -38,6 +40,7 @@ import org.graphstream.organic.OrganizationManagerFactory;
 import org.graphstream.organic.OrganizationsGraph;
 import org.graphstream.organic.Validation;
 import org.graphstream.stream.Sink;
+import org.graphstream.stream.SinkAdapter;
 import org.graphstream.stream.file.FileSinkDGS;
 import org.graphstream.stream.file.FileSourceDGS;
 
@@ -55,7 +58,7 @@ public class ComputeMeasures implements DynamicAlgorithm {
 		this.manager = manager;
 
 		g.addAttribute("organic.measures", "step", "averageCentroid",
-				"averageVertexConnectivity", "averageEdgeConnectivity",
+		/* "averageVertexConnectivity", */"averageEdgeConnectivity",
 				"averageSize");
 
 		g.addAttribute("organic.measures.averageCentroid.y-axis", 0);
@@ -63,10 +66,11 @@ public class ComputeMeasures implements DynamicAlgorithm {
 		g.addAttribute("organic.measures.averageCentroid.label", "step", "min",
 				"avg", "max");
 
-		g.addAttribute("organic.measures.averageVertexConnectivity.y-axis", 1);
-		g.addAttribute("organic.measures.averageVertexConnectivity.dim", 4);
-		g.addAttribute("organic.measures.averageVertexConnectivity.label",
-				"step", "min", "avg", "max");
+		// g.addAttribute("organic.measures.averageVertexConnectivity.y-axis",
+		// 1);
+		// g.addAttribute("organic.measures.averageVertexConnectivity.dim", 4);
+		// g.addAttribute("organic.measures.averageVertexConnectivity.label",
+		// "step", "min", "avg", "max");
 
 		g.addAttribute("organic.measures.averageEdgeConnectivity.y-axis", 1);
 		g.addAttribute("organic.measures.averageEdgeConnectivity.dim", 2);
@@ -93,14 +97,13 @@ public class ComputeMeasures implements DynamicAlgorithm {
 		g.addAttribute("organic.measures.averageCentroid.data",
 				averageCentroid());
 
-		g.addAttribute("organic.measures.averageVertexConnectivity.data",
-				averageVertexConnectivity());
+		// g.addAttribute("organic.measures.averageVertexConnectivity.data",
+		// averageVertexConnectivity());
 
 		g.addAttribute("organic.measures.averageEdgeConnectivity.data",
 				averageEdgeConnectivity());
 
-		g.addAttribute("organic.measures.averageSize.data",
-				averageSize());
+		g.addAttribute("organic.measures.averageSize.data", averageSize());
 	}
 
 	public double[] averageCentroid() {
@@ -214,10 +217,9 @@ public class ComputeMeasures implements DynamicAlgorithm {
 		AdjacencyListGraph g = new AdjacencyListGraph("g");
 		OrganizationsGraph metaGraph = new OrganizationsGraph(g);
 
-		
 		g.addSink(dgsOut);
 		dgsOut.begin(what + "_measures.dgs");
-		
+
 		ComputeMeasures measures = new ComputeMeasures();
 		measures.init(metaGraph.getManager());
 
