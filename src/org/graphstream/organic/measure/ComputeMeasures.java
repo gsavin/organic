@@ -151,7 +151,7 @@ public class ComputeMeasures implements DynamicAlgorithm {
 				t = ConnectivityMeasure.getVertexConnectivity(org);
 				min = Math.min(min, t);
 				avg += t;
-				min = Math.max(max, t);
+				max = Math.max(max, t);
 			}
 
 			avg /= manager.getOrganizationCount();
@@ -175,7 +175,7 @@ public class ComputeMeasures implements DynamicAlgorithm {
 				t = ConnectivityMeasure.getEdgeConnectivity(org);
 				min = Math.min(min, t);
 				avg += t;
-				min = Math.max(max, t);
+				max = Math.max(max, t);
 			}
 
 			avg /= manager.getOrganizationCount();
