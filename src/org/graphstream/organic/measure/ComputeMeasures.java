@@ -25,8 +25,6 @@
  */
 package org.graphstream.organic.measure;
 
-import java.io.PrintStream;
-
 import org.graphstream.algorithm.DynamicAlgorithm;
 import org.graphstream.algorithm.AlgorithmComputationTrigger;
 import org.graphstream.algorithm.AlgorithmComputationTrigger.Mode;
@@ -40,7 +38,6 @@ import org.graphstream.organic.OrganizationManagerFactory;
 import org.graphstream.organic.OrganizationsGraph;
 import org.graphstream.organic.Validation;
 import org.graphstream.stream.Sink;
-import org.graphstream.stream.SinkAdapter;
 import org.graphstream.stream.file.FileSinkDGS;
 import org.graphstream.stream.file.FileSourceDGS;
 
@@ -94,16 +91,19 @@ public class ComputeMeasures implements DynamicAlgorithm {
 	}
 
 	public void compute() {
-		g.addAttribute("organic.measures.averageCentroid.data",
-				averageCentroid());
+		double[] d;
+
+		d = averageCentroid();
+		g.addAttribute("organic.measures.averageCentroid.data", d);
 
 		// g.addAttribute("organic.measures.averageVertexConnectivity.data",
 		// averageVertexConnectivity());
 
-		g.addAttribute("organic.measures.averageEdgeConnectivity.data",
-				averageEdgeConnectivity());
+		d = averageEdgeConnectivity();
+		g.addAttribute("organic.measures.averageEdgeConnectivity.data", d);
 
-		g.addAttribute("organic.measures.averageSize.data", averageSize());
+		d = averageSize();
+		g.addAttribute("organic.measures.averageSize.data", d);
 	}
 
 	public double[] averageCentroid() {
@@ -140,15 +140,19 @@ public class ComputeMeasures implements DynamicAlgorithm {
 	}
 
 	public double[] averageVertexConnectivity() {
-		double min, avg, max;
+		double min, avg, max, t;
 
 		avg = 0;
 		min = Double.MAX_VALUE;
 		max = Double.MIN_VALUE;
 
 		if (manager.getOrganizationCount() > 0) {
-			for (Organization org : manager)
-				avg += ConnectivityMeasure.getVertexConnectivity(org);
+			for (Organization org : manager) {
+				t = ConnectivityMeasure.getVertexConnectivity(org);
+				min = Math.min(min, t);
+				avg += t;
+				min = Math.max(max, t);
+			}
 
 			avg /= manager.getOrganizationCount();
 		} else {
@@ -160,15 +164,19 @@ public class ComputeMeasures implements DynamicAlgorithm {
 	}
 
 	public double[] averageEdgeConnectivity() {
-		double min, avg, max;
+		double min, avg, max, t;
 
 		avg = 0;
 		min = Double.MAX_VALUE;
 		max = Double.MIN_VALUE;
 
 		if (manager.getOrganizationCount() > 0) {
-			for (Organization org : manager)
-				avg += ConnectivityMeasure.getEdgeConnectivity(org);
+			for (Organization org : manager) {
+				t = ConnectivityMeasure.getEdgeConnectivity(org);
+				min = Math.min(min, t);
+				avg += t;
+				min = Math.max(max, t);
+			}
 
 			avg /= manager.getOrganizationCount();
 		} else {

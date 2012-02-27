@@ -49,7 +49,6 @@ public class Measures {
 		OrganizationsGraph metaGraph = new OrganizationsGraph(g);
 		AverageOrganizationSizeMeasure aosm = new AverageOrganizationSizeMeasure();
 		AverageCentroidByOrganizationMeasure acbom = new AverageCentroidByOrganizationMeasure();
-		AverageConnectivityMeasure acm = new AverageConnectivityMeasure();
 
 		aosm.setSeparateMinMaxAxis(false);
 		aosm.init(metaGraph.getManager());
@@ -58,9 +57,6 @@ public class Measures {
 		acbom.setSeparateMinMaxAxis(false);
 		acbom.init(metaGraph.getManager());
 		acbom.plot();
-		
-		acm.init(metaGraph.getManager());
-		acm.plot();
 		
 		dgs.addSink(g);
 		dgs.begin(what);
